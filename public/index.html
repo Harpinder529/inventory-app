@@ -32,7 +32,7 @@
   .app { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
   .header { text-align: center; margin-bottom: 3rem; padding-top: 1rem; }
   .header-tag { display: inline-block; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); border: 1px solid rgba(0,229,160,0.3); padding: 4px 14px; border-radius: 100px; margin-bottom: 1.2rem; }
-  h1 { font-family: 'Syne', sans-serif; font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; background: linear-gradient(135deg, #fff 30%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.75rem; }
+  h1 { font-family: 'Syne', sans-serif; font-size: clamp(1.5rem, 3.5vw, 2.4rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; background: linear-gradient(135deg, #fff 30%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.75rem; }
   .header-sub { color: var(--text2); font-size: 15px; font-weight: 300; }
   .section-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); margin-bottom: 1rem; }
   .files-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.5rem; }
@@ -45,7 +45,6 @@
     .btn-download, .btn-reset { width: 100%; justify-content: center; }
   }
 
-  /* ── fade-out section (point 3) ── */
   .upload-section {
     transition: opacity 0.5s ease, transform 0.5s ease, max-height 0.6s ease;
     max-height: 2000px;
@@ -225,12 +224,10 @@
   .toast.toast-err { border-color: rgba(239,68,68,0.4); color: var(--danger); }
   .toast.toast-ok { border-color: rgba(0,217,126,0.4); color: var(--success); }
 
-  /* master loading spinner */
   .master-loading { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 6px; margin-top: 4px; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .spinner { width: 12px; height: 12px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
   
-  /* Skeleton Loader */
   .skeleton {
     background: linear-gradient(90deg, var(--bg3) 25%, var(--bg2) 50%, var(--bg3) 75%);
     background-size: 200% 100%;
@@ -242,7 +239,6 @@
     100% { background-position: -200% 0; }
   }
   
-  /* Tooltip Styles */
   .tooltip {
     position: relative;
     display: inline-block;
@@ -264,7 +260,6 @@
     pointer-events: none;
   }
   
-  /* Sticky Footer Styles */
   .sticky-footer {
     position: relative;
     background: transparent;
@@ -311,7 +306,7 @@
     color: var(--text);
   }
   
-  /* Shortcuts Hint (minimal) */
+  /* Shortcuts Hint */
   .shortcuts-hint {
     position: fixed;
     bottom: 20px;
