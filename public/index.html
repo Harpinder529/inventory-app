@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly Inventory Report Automation</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0c0f; --bg2: #111318; --bg3: #181c22;
+    --border: rgba(255,255,255,0.07); --border2: rgba(255,255,255,0.12);
+    --accent: #00e5a0; --text: #f0f2f5; --text2: #8a9bb0; --text3: #4a5568;
+    --success: #00d97e; --danger: #ef4444; --card-r: 14px;
+  }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+  .app { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+  .header { text-align: center; margin-bottom: 3rem; padding-top: 1rem; }
+  .header-tag { display: inline-block; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent); border: 1px solid rgba(0,229,160,0.3); padding: 4px 14px; border-radius: 100px; margin-bottom: 1.2rem; }
+  h1 { font-family: 'Syne', sans-serif; font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; background: linear-gradient(135deg, #fff 30%, var(--accent) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 0.75rem; }
+  .header-sub { color: var(--text2); font-size: 15px; font-weight: 300; }
+  .section-label { font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--text3); margin-bottom: 1rem; }
+  .files-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.5rem; }
+  @media (max-width: 640px) { .files-grid { grid-template-columns: 1fr; } }
+
+  /* ── fade-out section (point 3) ── */
+  .upload-section {
+    transition: opacity 0.5s ease, transform 0.5s ease, max-height 0.6s ease;
+    max-height: 2000px;
+    overflow: hidden;
+  }
+  .upload-section.hidden {
+    opacity: 0;
+    transform: translateY(-12px);
+    max-height: 0;
+    pointer-events: none;
+  }
+
+  .file-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--card-r); padding: 1rem 1.25rem; position: relative; overflow: hidden; transition: border-color 0.2s, background 0.2s; }
+  .file-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent-color, var(--accent)); opacity: 0; transition: opacity 0.2s; }
+  .file-card.loaded::before { opacity: 1; }
+  .file-card.loaded { border-color: var(--border2); background: var(--bg3); }
+  .file-card-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+  .file-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0; }
+  .file-card-title { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); line-height: 1.3; flex: 1; }
+  .file-card-desc { font-size: 11px; color: var(--text3); margin-bottom: 10px; line-height: 1.5; }
+  .file-status { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text3); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .file-status.ok { color: var(--success); }
+  .file-status.builtin { color: #a855f7; }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+  .file-input-hidden { display: none; }
+  .btn-upload { display: block; width: 100%; background: transparent; border: 1px dashed var(--border2); border-radius: 8px; color: var(--text2); font-family: 'DM Sans', sans-serif; font-size: 12px; padding: 6px 0; cursor: pointer; transition: all 0.2s; text-align: center; margin-top: 8px; }
+  .btn-upload:hover { border-color: var(--accent); color: var(--accent); background: rgba(0,229,160,0.04); }
+  .btn-upload.override { border-color: rgba(168,85,247,0.3); color: #a855f7; }
+  .btn-upload.override:hover { border-color: #a855f7; background: rgba(168,85,247,0.06); }
+
+  .run-area { text-align: center; margin: 2rem 0; }
+  .btn-run { display: inline-flex; align-items: center; gap: 10px; font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; background: linear-gradient(135deg, var(--accent) 0%, #00b37d 100%); color: #001a0d; border: none; border-radius: 100px; padding: 14px 36px; cursor: pointer; transition: opacity 0.2s, transform 0.15s; }
+  .btn-run:hover { opacity: 0.9; transform: translateY(-1px); }
+  .btn-run:active { transform: scale(0.98); }
+  .btn-run:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-run svg { width: 18px; height: 18px; }
+
+  .progress-area { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--card-r); padding: 1.5rem; margin-top: 1.5rem; display: none; }
+  .progress-area.visible { display: block; }
+  .progress-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; margin-bottom: 1rem; color: var(--text); }
+  .progress-bar-wrap { background: var(--bg3); border-radius: 100px; height: 6px; margin-bottom: 1rem; overflow: hidden; }
+  .progress-bar { height: 100%; background: linear-gradient(90deg, var(--accent), #00b37d); border-radius: 100px; width: 0%; transition: width 0.4s ease; }
+  .progress-steps { display: flex; flex-direction: column; gap: 6px; }
+  .progress-step { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text3); font-family: 'DM Mono', monospace; }
+  .progress-step.active { color: var(--accent); }
+  .progress-step.done { color: var(--success); }
+  .progress-step.error { color: var(--danger); }
+  .step-icon { width: 18px; text-align: center; }
+
+  .log-area { background: var(--bg3); border-radius: 8px; padding: 10px 14px; margin-top: 12px; max-height: 140px; overflow-y: auto; display: none; }
+  .log-area.visible { display: block; }
+  .log-line { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); margin: 2px 0; }
+  .log-line.warn { color: #f59e0b; }
+  .log-line.err { color: var(--danger); }
+
+  .summary-area { background: var(--bg2); border: 1px solid rgba(0,229,160,0.2); border-radius: var(--card-r); padding: 1.5rem; margin-top: 1.5rem; display: none; }
+  .summary-area.visible { display: block; }
+  .summary-title { font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; color: var(--accent); margin-bottom: 1rem; }
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 1.2rem; }
+  .summary-metric { background: var(--bg3); border-radius: 10px; padding: 12px; text-align: center; }
+  .metric-val { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; color: var(--text); }
+  .metric-lbl { font-size: 11px; color: var(--text3); margin-top: 3px; font-family: 'DM Mono', monospace; }
+
+  .btn-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 0.5rem; }
+  .btn-download { display: inline-flex; align-items: center; gap: 8px; font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; background: transparent; border: 1px solid var(--accent); color: var(--accent); border-radius: 100px; padding: 10px 28px; cursor: pointer; transition: all 0.2s; }
+  .btn-download:hover { background: rgba(0,229,160,0.08); }
+  .btn-reset { display: inline-flex; align-items: center; gap: 8px; font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 600; background: transparent; border: 1px solid var(--border2); color: var(--text2); border-radius: 100px; padding: 10px 28px; cursor: pointer; transition: all 0.2s; }
+  .btn-reset:hover { border-color: var(--text2); color: var(--text); }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
+  .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--bg3); border: 1px solid var(--border2); border-radius: 10px; padding: 12px 18px; font-size: 13px; color: var(--text); z-index: 9999; transform: translateY(20px); opacity: 0; transition: all 0.3s; max-width: 320px; }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.toast-err { border-color: rgba(239,68,68,0.4); color: var(--danger); }
+  .toast.toast-ok { border-color: rgba(0,217,126,0.4); color: var(--success); }
+
+  /* master loading spinner */
+  .master-loading { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .spinner { width: 12px; height: 12px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-tag">RV Solutions</div>
+    <h1>Weekly Inventory<br>Report Automation</h1>
+    <p class="header-sub">Upload your data files and generate the consolidated inventory report in seconds.</p>
+  </div>
+
+  <!-- ── UPLOAD SECTION (fades away on run) ── -->
+  <div class="upload-section" id="upload-section">
+
+    <div class="section-label">Required data files</div>
+    <div class="files-grid">
+      <div class="file-card" id="card-sales" style="--accent-color:#00e5a0;">
+        <div class="file-card-header">
+          <div class="file-icon" style="background:rgba(0,229,160,0.1);color:#00e5a0;">S</div>
+          <div><div class="file-card-title">Sales Report</div></div>
+        </div>
+        <div class="file-card-desc">GRNR invoices filtered by Type &amp; Status. Fills week-wise Out columns per brand.</div>
+        <div class="file-status" id="status-sales"><span class="status-dot"></span> No file chosen</div>
+        <button class="btn-upload" onclick="document.getElementById('input-sales').click()">Choose file (.xlsx / .csv)</button>
+        <input type="file" id="input-sales" class="file-input-hidden" accept=".xlsx,.xls,.csv" onchange="handleFile('sales',this)">
+      </div>
+      <div class="file-card" id="card-return" style="--accent-color:#0070f3;">
+        <div class="file-card-header">
+          <div class="file-icon" style="background:rgba(0,112,243,0.1);color:#0070f3;">R</div>
+          <div><div class="file-card-title">Sales Return Report</div></div>
+        </div>
+        <div class="file-card-desc">Returns with Dispatched/Processed status. Fills In Transit column.</div>
+        <div class="file-status" id="status-return"><span class="status-dot"></span> No file chosen</div>
+        <button class="btn-upload" onclick="document.getElementById('input-return').click()">Choose file (.xlsx / .csv)</button>
+        <input type="file" id="input-return" class="file-input-hidden" accept=".xlsx,.xls,.csv" onchange="handleFile('return',this)">
+      </div>
+      <div class="file-card" id="card-grn" style="--accent-color:#ff6b35;">
+        <div class="file-card-header">
+          <div class="file-icon" style="background:rgba(255,107,53,0.1);color:#ff6b35;">G</div>
+          <div><div class="file-card-title">GRN Details</div></div>
+        </div>
+        <div class="file-card-desc">Goods receipt notes by supplier. Fills week-wise In columns per brand.</div>
+        <div class="file-status" id="status-grn"><span class="status-dot"></span> No file chosen</div>
+        <button class="btn-upload" onclick="document.getElementById('input-grn').click()">Choose file (.xlsx / .csv)</button>
+        <input type="file" id="input-grn" class="file-input-hidden" accept=".xlsx,.xls,.csv" onchange="handleFile('grn',this)">
+      </div>
+      <div class="file-card" id="card-stock" style="--accent-color:#a855f7;">
+        <div class="file-card-header">
+          <div class="file-icon" style="background:rgba(168,85,247,0.1);color:#a855f7;">T</div>
+          <div><div class="file-card-title">Stock Details</div></div>
+        </div>
+        <div class="file-card-desc">Current stock by location. Fills Good/Defective inventory columns.</div>
+        <div class="file-status" id="status-stock"><span class="status-dot"></span> No file chosen</div>
+        <button class="btn-upload" onclick="document.getElementById('input-stock').click()">Choose file (.xlsx / .csv)</button>
+        <input type="file" id="input-stock" class="file-input-hidden" accept=".xlsx,.xls,.csv" onchange="handleFile('stock',this)">
+      </div>
+    </div>
+
+    <!-- ── MASTER FILES SECTION (point 1: scrolled to after first required file loaded) ── -->
+    <div id="master-section" style="scroll-margin-top: 24px;">
+      <div class="section-label" style="margin-top:1.5rem;">Master files (built-in active — override if needed)</div>
+      <div class="files-grid">
+        <div class="file-card" id="card-partcode" style="--accent-color:#f59e0b;">
+          <div class="file-card-header">
+            <div class="file-icon" style="background:rgba(245,158,11,0.1);color:#f59e0b;">P</div>
+            <div><div class="file-card-title">Partcode Master</div></div>
+          </div>
+          <div class="file-card-desc">Partcode → Brand. Used in Sales Report.</div>
+          <div class="file-status" id="status-partcode"><span class="status-dot"></span> <span id="label-partcode">Loading built-in...</span></div>
+          <div class="master-loading" id="spinner-partcode"><div class="spinner"></div> Fetching from server...</div>
+          <button class="btn-upload override" onclick="document.getElementById('input-partcode').click()">Override with custom file</button>
+          <input type="file" id="input-partcode" class="file-input-hidden" accept=".xlsx,.xls,.csv" onchange="handleFile('partcode',this)">
+        </div>
+        <div class="file-card" id="card-pricelist" style="--accent-color:#10b981;">
+          <div class="file-card-header">
+            <div class="file-icon" style="background:rgba(16,185,129,0.1);color:#10b981;">L</div>
+            <div><div class="file-card-title">Pricelist Master</div></div>
+          </div>
+          <div class="file-card-desc">Part code → Brand Price &amp; Brand. Used for valuation.</div>
+          <div class="file-status" id="status-pricelist"><span class="status-dot"></span> <span id="label-pricelist">Loading built-in...</span></div>
+          <div class="master-loading" id="spinner-pricelist"><div class="spinner"></div> Fetching from server...</div>
+          <button class="btn-upload override" onclick="document.getElementById('input-pricelist').click()">Override with custom file</button>
+          <input type="file" id="input-pricelist" class="file-input-hidden" accept=".xlsx,.xls,.csv" onchange="handleFile('pricelist',this)">
+        </div>
+        <div class="file-card" id="card-supplier" style="--accent-color:#ec4899;">
+          <div class="file-card-header">
+            <div class="file-icon" style="background:rgba(236,72,153,0.1);color:#ec4899;">M</div>
+            <div><div class="file-card-title">Supplier Mapping Master</div></div>
+          </div>
+          <div class="file-card-desc">Supplier Name → Brand Name. Used in GRN processing.</div>
+          <div class="file-status" id="status-supplier"><span class="status-dot"></span> <span id="label-supplier">Loading built-in...</span></div>
+          <div class="master-loading" id="spinner-supplier"><div class="spinner"></div> Fetching from server...</div>
+          <button class="btn-upload override" onclick="document.getElementById('input-supplier').click()">Override with custom file</button>
+          <input type="file" id="input-supplier" class="file-input-hidden" accept=".xlsx,.xls,.csv" onchange="handleFile('supplier',this)">
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider">
+
+    <div class="run-area">
+      <button class="btn-run" id="btn-run" onclick="runAutomation()" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Prepare Inventory Report
+      </button>
+      <p style="font-size:12px;color:var(--text3);margin-top:10px;">Sales Report, GRN Details, and Stock Details are required to proceed.</p>
+    </div>
+  </div>
+  <!-- ── END UPLOAD SECTION ── -->
+
+  <div class="progress-area" id="progress-area">
+    <div class="progress-title" id="progress-title">Processing files...</div>
+    <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+    <div class="progress-steps" id="progress-steps"></div>
+    <div class="log-area" id="log-area"></div>
+  </div>
+
+  <div class="summary-area" id="summary-area">
+    <div class="summary-title">Report Ready</div>
+    <div class="summary-grid" id="summary-grid"></div>
+    <div class="btn-row">
+      <button class="btn-download" id="btn-download">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download Inventory Report (.xlsx)
+      </button>
+      <button class="btn-reset" onclick="resetApp()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
+        Start Over
+      </button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+const fileData    = {};
+const REQUIRED    = ['sales','grn','stock'];
+const MONTHS      = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
+const BRANDS      = ['Philips','Reliance TV','Life long','AI+','pTron','Mobilla','AcWo','Pebble','Matrix','EVM','Honor','Boat','Harman','Samsung'];
+const logs        = [];
+let masterScrolled = false; // point 1: only scroll once
+
+// ─────────────────────────────────────────────
+// POINT 2: Load built-in master files from /masters/
+// Place these files in public/masters/ on Vercel:
+//   partcode_master.xlsx
+//   pricelist_master.xlsx
+//   supplier_mapping.xlsx
+// ─────────────────────────────────────────────
+const MASTER_FILES = {
+  partcode:  '/masters/partcode_master.xlsx',
+  pricelist: '/masters/pricelist_master.xlsx',
+  supplier:  '/masters/supplier_mapping.xlsx',
+};
+
+async function loadBuiltinMaster(key) {
+  const path = MASTER_FILES[key];
+  try {
+    const res = await fetch(path);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const buf = await res.arrayBuffer();
+    const wb  = XLSX.read(buf, { type:'array', cellDates:true });
+    const ws  = wb.Sheets[wb.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(ws, { defval:'', raw:false });
+    fileData[key] = rows;
+
+    // Update UI
+    document.getElementById('spinner-'+key).style.display = 'none';
+    const statusEl = document.getElementById('status-'+key);
+    statusEl.className = 'file-status builtin';
+    statusEl.innerHTML = `<span class="status-dot"></span> Built-in active — ${rows.length} records`;
+    document.getElementById('card-'+key).classList.add('loaded');
+    console.log(`[Master] ${key} loaded: ${rows.length} rows`);
+  } catch(e) {
+    document.getElementById('spinner-'+key).style.display = 'none';
+    const lbl = document.getElementById('label-'+key);
+    if (lbl) lbl.textContent = 'Built-in not found — please upload';
+    console.warn(`[Master] ${key} failed to load:`, e.message);
+  }
+}
+
+// Load all 3 masters on page load
+window.addEventListener('DOMContentLoaded', () => {
+  loadBuiltinMaster('partcode');
+  loadBuiltinMaster('pricelist');
+  loadBuiltinMaster('supplier');
+});
+
+// ─────────────────────────────────────────────
+// FILE HANDLING
+// ─────────────────────────────────────────────
+function readWorkbook(file) {
+  return new Promise((res,rej) => {
+    const r = new FileReader();
+    r.onload = e => {
+      try {
+        const wb = XLSX.read(e.target.result, {type:'binary', cellDates:true});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        res(XLSX.utils.sheet_to_json(ws, {defval:'', raw:false}));
+      } catch(err) { rej(err); }
+    };
+    r.onerror = rej;
+    r.readAsBinaryString(file);
+  });
+}
+
+async function handleFile(key, input) {
+  const file = input.files[0];
+  if (!file) return;
+  try {
+    const rows = await readWorkbook(file);
+    fileData[key] = rows;
+    document.getElementById('card-'+key).classList.add('loaded');
+    const s = document.getElementById('status-'+key);
+    s.className = 'file-status ok';
+    s.innerHTML = `<span class="status-dot"></span> ${file.name} — ${rows.length} rows`;
+
+    // Hide spinner for masters if user overrides
+    const sp = document.getElementById('spinner-'+key);
+    if (sp) sp.style.display = 'none';
+
+    showToast('Loaded: '+file.name,'ok');
+    checkReady();
+
+    // POINT 1: Auto-scroll to master section the first time a required file is loaded
+    if (REQUIRED.includes(key) && !masterScrolled) {
+      masterScrolled = true;
+      setTimeout(() => {
+        document.getElementById('master-section').scrollIntoView({ behavior:'smooth', block:'start' });
+      }, 400);
+    }
+  } catch(e) {
+    showToast('Failed to read: '+e.message,'err');
+  }
+}
+
+function checkReady() {
+  document.getElementById('btn-run').disabled = !REQUIRED.every(k=>fileData[k]);
+}
+
+function showToast(msg, type='') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show'+(type?' toast-'+type:'');
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.classList.remove('show'), 3500);
+}
+
+// ─────────────────────────────────────────────
+// RESET (start over button)
+// ─────────────────────────────────────────────
+function resetApp() {
+  // Clear user-uploaded data files (keep masters)
+  ['sales','return','grn','stock'].forEach(k => {
+    delete fileData[k];
+    const card = document.getElementById('card-'+k);
+    if (card) card.classList.remove('loaded');
+    const s = document.getElementById('status-'+k);
+    if (s) { s.className='file-status'; s.innerHTML=`<span class="status-dot"></span> No file chosen`; }
+    const inp = document.getElementById('input-'+k);
+    if (inp) inp.value='';
+  });
+  masterScrolled = false;
+  document.getElementById('upload-section').classList.remove('hidden');
+  document.getElementById('progress-area').classList.remove('visible');
+  document.getElementById('summary-area').classList.remove('visible');
+  document.getElementById('progress-bar').style.width = '0%';
+  logs.length = 0;
+  document.getElementById('log-area').innerHTML='';
+  document.getElementById('log-area').classList.remove('visible');
+  document.getElementById('btn-run').disabled = true;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+// ─────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────
+function cleanNum(v) {
+  if (v===null||v===undefined||v==='') return 0;
+  const n = parseFloat(String(v).replace(/,/g,'').replace(/₹/g,'').replace(/\s/g,''));
+  return isNaN(n) ? 0 : n;
+}
+
+function parseDate(v) {
+  if (!v) return null;
+  if (v instanceof Date) return isNaN(v)?null:v;
+  let d = new Date(v);
+  if (!isNaN(d)) return d;
+  const m = String(v).match(/^(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})$/);
+  if (m) {
+    let [,a,b,c]=m; c=c.length===2?'20'+c:c;
+    d = new Date(+c, +b-1, +a);
+    return isNaN(d)?null:d;
+  }
+  return null;
+}
+
+function getWeek(v) {
+  const d = parseDate(v);
+  if (!d) return null;
+  const day = d.getDate();
+  if (day<=7) return 1; if (day<=15) return 2; if (day<=23) return 3; return 4;
+}
+
+function getCurrentMonth() { return MONTHS[new Date().getMonth()]; }
+
+function createMapping(rows, keyCol, valCol) {
+  const map = {};
+  if (!rows||!rows.length) return map;
+  for (const row of rows) {
+    const k = String(row[keyCol]!==undefined?row[keyCol]:'').trim();
+    if (k&&!(k in map)) map[k] = String(row[valCol]!==undefined?row[valCol]:'').trim();
+  }
+  return map;
+}
+
+function addLog(msg, type='') {
+  logs.push({msg,type});
+  const la = document.getElementById('log-area');
+  la.classList.add('visible');
+  la.innerHTML = logs.map(l=>`<div class="log-line ${l.type}">${l.msg}</div>`).join('');
+  la.scrollTop = la.scrollHeight;
+}
+
+// ─────────────────────────────────────────────
+// PROCESSORS (identical logic to app.py)
+// ─────────────────────────────────────────────
+function processSalesReport(rows, partcodeMaster) {
+  const partBrandMap = createMapping(partcodeMaster,'Partcode','Brand');
+  addLog(`Partcode master: ${Object.keys(partBrandMap).length} entries`);
+  let filtered = rows.filter(r=>String(r['Type']||'').trim()==='GRNR');
+  addLog(`Sales: ${rows.length} rows → ${filtered.length} after Type=GRNR`);
+  filtered = filtered.filter(r=>String(r['Status']||'').trim()!=='Received');
+  addLog(`Sales: ${filtered.length} rows after excluding Status=Received`);
+  const result = {}; let matched=0;
+  for (const row of filtered) {
+    const rate=cleanNum(row['Rate']), qty=cleanNum(row['Quantity of goods sold']), tv=rate*qty;
+    const pc=String(row['Partcode']||'').trim(), brand=partBrandMap[pc]||'';
+    if (!brand) continue;
+    const week=getWeek(row['Invoice date']||row['Invoice Date']);
+    if (!week) continue;
+    if (!result[brand]) result[brand]={'Week 1 Out':0,'Week 2 Out':0,'Week 3 Out':0,'Week 4 Out':0};
+    result[brand][`Week ${week} Out`]+=tv; matched++;
+  }
+  addLog(`Sales: ${matched} rows matched`);
+  const active=Object.keys(result).filter(b=>Object.values(result[b]).some(v=>v>0));
+  if (active.length) addLog(`Sales brands: ${active.join(', ')}`);
+  return result;
+}
+
+function processGrnDetails(rows, supplierMaster) {
+  const supBrandMap = createMapping(supplierMaster,'Supplier Name','Brand Name');
+  addLog(`Supplier master: ${Object.keys(supBrandMap).length} entries`);
+  const result={}; let matched=0;
+  for (const row of rows) {
+    const sup=String(row['Supplier Name']||'').trim(), brand=supBrandMap[sup]||'';
+    if (!brand) continue;
+    const cost=cleanNum(row['Cost']), week=getWeek(row['Supplier Invoice Date']||row['Supplier Invoice date']);
+    if (!week) continue;
+    if (!result[brand]) result[brand]={'Week 1 In':0,'Week 2 In':0,'Week 3 In':0,'Week 4 In':0};
+    result[brand][`Week ${week} In`]+=cost; matched++;
+  }
+  addLog(`GRN: ${matched} rows matched`);
+  const active=Object.keys(result).filter(b=>Object.values(result[b]).some(v=>v>0));
+  if (active.length) addLog(`GRN brands: ${active.join(', ')}`);
+  return result;
+}
+
+function processStockDetails(rows, pricelistMaster) {
+  const partPriceMap=createMapping(pricelistMaster,'Part code','Brand Price');
+  const partBrandMap=createMapping(pricelistMaster,'Part code','Brand');
+  addLog(`Pricelist master: ${Object.keys(partPriceMap).length} price entries`);
+  const RV_HO=new Set(['RWH - Central Werehouse']);
+  const RV_ESC=new Set(['BT- RV Solutions Pvt Ltd (Ahmedabad, GI)','BT-RV Solutions Pvt. Ltd.(Dadar,MH)','RV Solution Pvt Ltd (Ahmedabad, GJ)']);
+  const EXCL=/Test|RWH - Central Werehouse|BT- RV Solutions|RV Solution/i;
+  const acc={};
+  for (const row of rows) {
+    const pc=String(row['Part code']||row['Partcode']||'').trim();
+    const brand=(String(row['Brand']||'').trim())||(partBrandMap[pc]||'');
+    if (!brand||brand==='Unknown') continue;
+    const bp=cleanNum(partPriceMap[pc]||row['Brand Price']||0);
+    const fresh=cleanNum(row['Fresh']), defect=cleanNum(row['Defective']);
+    const goodVal=fresh*bp, defVal=defect*bp;
+    const loc=String(row['Location Name']||'').trim();
+    if (!acc[brand]) acc[brand]={atRvHoGood:0,defRvHo:0,goodEsc:0,defEsc:0,goodAsc:0,defAsc:0};
+    if (RV_HO.has(loc)) { acc[brand].atRvHoGood+=goodVal; acc[brand].defRvHo+=defVal; }
+    else if (RV_ESC.has(loc)) { acc[brand].goodEsc+=goodVal; acc[brand].defEsc+=defVal; }
+    else if (!EXCL.test(loc)) { acc[brand].goodAsc+=goodVal; acc[brand].defAsc+=defVal; }
+  }
+  const active=Object.keys(acc).filter(b=>Object.values(acc[b]).some(v=>v>0));
+  if (active.length) addLog(`Stock brands: ${active.join(', ')}`);
+  return acc;
+}
+
+function processSalesReturn(rows, pricelistMaster) {
+  const partPriceMap=createMapping(pricelistMaster,'Part code','Brand Price');
+  const result={}; let matched=0;
+  for (const row of rows) {
+    const status=String(row['Status']||'').trim();
+    if (status!=='Dispatched'&&status!=='Processed') continue;
+    const pc=String(row['Partcode']||row['Part code']||'').trim();
+    const bp=cleanNum(partPriceMap[pc]||0);
+    const qty=cleanNum(row['Quantity of goods Return']||row['Quantity of goods return']||0);
+    const brand=String(row['Brand']||'').trim();
+    if (!brand||brand==='Unknown') continue;
+    result[brand]=(result[brand]||0)+(qty*bp); matched++;
+  }
+  addLog(`Return: ${matched} rows matched`);
+  return result;
+}
+
+function createInventoryReport(salesData, grnData, stockData, returnData) {
+  const month=getCurrentMonth();
+  const allFound=new Set([...Object.keys(salesData),...Object.keys(grnData),...Object.keys(stockData),...Object.keys(returnData)]);
+  const brandList=[...BRANDS,...[...allFound].filter(b=>!BRANDS.includes(b))];
+  return brandList.map(brand => {
+    const sd=salesData[brand]||{}, gd=grnData[brand]||{}, st=stockData[brand]||{}, rd=cleanNum(returnData[brand]||0);
+    const w1in=cleanNum(gd['Week 1 In']||0),w2in=cleanNum(gd['Week 2 In']||0),w3in=cleanNum(gd['Week 3 In']||0),w4in=cleanNum(gd['Week 4 In']||0);
+    const w1out=cleanNum(sd['Week 1 Out']||0),w2out=cleanNum(sd['Week 2 Out']||0),w3out=cleanNum(sd['Week 3 Out']||0),w4out=cleanNum(sd['Week 4 Out']||0);
+    const atHoGood=cleanNum(st.atRvHoGood||0),defHo=cleanNum(st.defRvHo||0);
+    const goodEsc=cleanNum(st.goodEsc||0),goodAsc=cleanNum(st.goodAsc||0);
+    const defEsc=cleanNum(st.defEsc||0),defAsc=cleanNum(st.defAsc||0);
+    const totalInv=atHoGood+defHo+goodEsc+goodAsc+defEsc+defAsc+rd;
+    const f=v=>v===0?'':v;
+    return [month,brand,f(w1in),f(w1out),f(w2in),f(w2out),f(w3in),f(w3out),f(w4in),f(w4out),f(atHoGood),f(defHo),f(goodEsc),f(goodAsc),f(defEsc),f(defAsc),f(rd),totalInv];
+  });
+}
+
+// ─────────────────────────────────────────────
+// PROGRESS UI
+// ─────────────────────────────────────────────
+const STEPS = ['Loading master data','Processing Sales Report','Processing GRN Details','Processing Stock Details','Processing Sales Return','Building Inventory Table','Generating Excel file'];
+
+function renderSteps(states) {
+  const icons={active:'⟳',done:'✓',error:'✗',pending:'○'};
+  document.getElementById('progress-steps').innerHTML=states.map(s=>`<div class="progress-step ${s.state||''}"><span class="step-icon">${icons[s.state||'pending']}</span>${s.label}</div>`).join('');
+}
+
+// ─────────────────────────────────────────────
+// MAIN RUN
+// ─────────────────────────────────────────────
+async function runAutomation() {
+  logs.length=0;
+  document.getElementById('log-area').innerHTML='';
+  document.getElementById('log-area').classList.remove('visible');
+  document.getElementById('btn-run').disabled=true;
+
+  // POINT 3: Fade out the upload section
+  document.getElementById('upload-section').classList.add('hidden');
+
+  document.getElementById('progress-area').classList.add('visible');
+  document.getElementById('summary-area').classList.remove('visible');
+
+  const bar=document.getElementById('progress-bar');
+  bar.style.width='0%';
+  const states=STEPS.map(label=>({label,state:'pending'}));
+  renderSteps(states);
+  const delay=ms=>new Promise(r=>setTimeout(r,ms));
+  const upd=(i,s,pct)=>{ states[i].state=s; bar.style.width=pct+'%'; renderSteps(states); };
+
+  await delay(80); upd(0,'active',5); await delay(80);
+  const partcodeMaster=fileData.partcode||[];
+  const pricelistMaster=fileData.pricelist||[];
+  const supplierMaster=fileData.supplier||[];
+  upd(0,'done',12); await delay(60);
+
+  upd(1,'active',12); await delay(80);
+  let salesData={};
+  try { salesData=processSalesReport(fileData.sales||[],partcodeMaster); } catch(e){addLog('Sales error: '+e.message,'err');}
+  upd(1,'done',28); await delay(60);
+
+  upd(2,'active',28); await delay(80);
+  let grnData={};
+  try { grnData=processGrnDetails(fileData.grn||[],supplierMaster); } catch(e){addLog('GRN error: '+e.message,'err');}
+  upd(2,'done',44); await delay(60);
+
+  upd(3,'active',44); await delay(80);
+  let stockData={};
+  try { stockData=processStockDetails(fileData.stock||[],pricelistMaster); } catch(e){addLog('Stock error: '+e.message,'err');}
+  upd(3,'done',60); await delay(60);
+
+  upd(4,'active',60); await delay(80);
+  let returnData={};
+  try { if(fileData.return) returnData=processSalesReturn(fileData.return,pricelistMaster); } catch(e){addLog('Return error: '+e.message,'err');}
+  upd(4,'done',74); await delay(60);
+
+  upd(5,'active',74); await delay(80);
+  const HEADERS=['Month','Brand Name','Week 1 In','Week 1 Out','Week 2 In','Week 2 Out','Week 3 In','Week 3 Out','Week 4 In','Week 4 Out','At RV HO Good','Defective at RV HO','Good Stock at RV ESC','Good Inv at ASC','Defective Stock at RV ESC','Defective Inv at ASC','In Tran. from ASC to Brand/ RV HO','Total Inv'];
+  const dataRows=createInventoryReport(salesData,grnData,stockData,returnData);
+  upd(5,'done',86); await delay(60);
+
+  upd(6,'active',86); await delay(80);
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet([HEADERS,...dataRows]);
+  ws['!cols']=HEADERS.map((_,i)=>({wch:i<2?14:18}));
+  XLSX.utils.book_append_sheet(wb,ws,'Inventory Report');
+  window._wb=wb;
+
+  document.getElementById('btn-download').onclick=()=>{
+    const d=new Date();
+    const ts=`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+    XLSX.writeFile(window._wb,`Inventory_Report_${ts}.xlsx`);
+  };
+  upd(6,'done',100); await delay(200);
+
+  // Summary metrics
+  const nf=v=>v>=1e7?(v/1e7).toFixed(1)+' Cr':v>=1e5?(v/1e5).toFixed(1)+' L':v>=1e3?(v/1e3).toFixed(1)+'K':v.toFixed(0);
+  const active=dataRows.filter(r=>r.slice(2).some(v=>v!==''&&v!==0)).length;
+  const totalIn=dataRows.reduce((s,r)=>s+cleanNum(r[2])+cleanNum(r[4])+cleanNum(r[6])+cleanNum(r[8]),0);
+  const totalOut=dataRows.reduce((s,r)=>s+cleanNum(r[3])+cleanNum(r[5])+cleanNum(r[7])+cleanNum(r[9]),0);
+  const totalInv=dataRows.reduce((s,r)=>s+cleanNum(r[17]),0);
+
+  document.getElementById('summary-grid').innerHTML=[
+    {val:active,lbl:'Active Brands'},{val:nf(totalIn),lbl:'Total Inward'},
+    {val:nf(totalOut),lbl:'Total Outward'},{val:nf(totalInv),lbl:'Total Inv Value'},
+  ].map(m=>`<div class="summary-metric"><div class="metric-val">${m.val}</div><div class="metric-lbl">${m.lbl}</div></div>`).join('');
+
+  document.getElementById('summary-area').classList.add('visible');
+  document.getElementById('btn-run').disabled=false;
+  showToast('Report ready! Click Download.','ok');
+}
+</script>
+</body>
+</html>
