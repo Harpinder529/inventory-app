@@ -272,7 +272,7 @@
       cursor: not-allowed;
     }
     .btn-run:not(:disabled):hover {
-      background: #c94f31;
+      background: #0084ff;
       color: white;
       transform: scale(0.98);
     }
@@ -366,7 +366,7 @@
       letter-spacing: 0.5px;
     }
     .btn-download {
-      background: #2a6e4b;
+      background: #008cff;
       border: none;
       padding: 0.9rem 1.5rem;
       border-radius: 60px;
@@ -500,10 +500,10 @@
   <!-- Summary section (hidden initially) -->
   <div id="summarySection" style="display: none;">
     <div class="summary-panel">
-      <div class="summary-header">📊 INVENTORY SUMMARY</div>
+      <div class="summary-header">INVENTORY SUMMARY</div>
       <div class="summary-metrics" id="summaryMetrics"></div>
       <div class="action-bar">
-        <button class="btn-download" id="downloadBtn">⬇ DOWNLOAD REPORT (.XLSX)</button>
+        <button class="btn-download" id="downloadBtn">DOWNLOAD REPORT (.xlsx)</button>
         <button class="btn-reset" id="resetBtn">↻ START OVER</button>
       </div>
     </div>
@@ -575,7 +575,7 @@
     try {
       const rows = await readExcelFile(file);
       fileData[key] = rows;
-      updateStatusUI(key, `✓ ${file.name} (${rows.length} rows)`, 'ok');
+      updateStatusUI(key, `${file.name} (${rows.length} rows)`, 'ok');
       showToast(`Loaded ${file.name}`);
       checkRunEnabled();
       updateFileCounter();
@@ -607,7 +607,7 @@
       const rows = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
       fileData[key] = rows;
       if (spinner) spinner.style.display = 'none';
-      updateStatusUI(key, `✓ Built‑in active · ${rows.length} entries`, 'builtin');
+      updateStatusUI(key, `Built‑in active · ${rows.length} entries`, 'builtin');
     } catch (e) {
       if (spinner) spinner.style.display = 'none';
       updateStatusUI(key, `Built‑in missing — upload manually`, 'default');
