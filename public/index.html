@@ -18,16 +18,16 @@
   }
   html { scroll-behavior: smooth; }
   body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; }
-  body::before { 
-    content: ''; 
-    position: fixed; 
-    inset: 0; 
-    background-image: 
-      radial-gradient(circle at 25% 50%, rgba(0,229,160,0.02) 1px, transparent 1px),
-      radial-gradient(circle at 75% 80%, rgba(0,229,160,0.02) 1px, transparent 1px);
-    background-size: 50px 50px, 80px 80px;
-    pointer-events: none; 
-    z-index: 0; 
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,160,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,0.03) 1px, transparent 1px);
+    background-size: 40px 40px, 40px 40px, 20px 20px;
+    pointer-events: none;
+    z-index: 0;
   }
   .app { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
   .header { text-align: center; margin-bottom: 3rem; padding-top: 1rem; }
