@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Send ASC Inventory Mails | RV Solutions</title>
+  <link rel="icon" type="image/png" href="/public/logo.png">
+  <link rel="apple-touch-icon" href="/public/logo.png">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background:#fefaf0;
+      font-family:'Inter',sans-serif;
+      color:#1a1e2b;
+      line-height:1.4;
+      padding:2rem 1.5rem;
+    }
+    a { text-decoration:none; }
+
+    .container {
+      max-width:1100px;
+      margin:0 auto;
+      background:#fff;
+      border-radius:2rem;
+      box-shadow:0 20px 40px -12px rgba(0,0,0,0.08),0 4px 12px rgba(0,0,0,0.02);
+      overflow:hidden;
+    }
+
+    /* ── HEADER ── */
+    .hero {
+      padding:2rem 2.5rem 1.8rem;
+      background:#fff;
+      border-bottom:1px solid #e9e6df;
+    }
+    .hero-top {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      gap:1rem;
+      margin-bottom:1.5rem;
+    }
+    .logo-area { display:flex; align-items:center; gap:0.75rem; }
+    .logo { height:38px; opacity:0.9; }
+    .logo-text { font-weight:800; font-size:1.1rem; letter-spacing:-0.4px; color:#070707; }
+    .logo-text span { color:#0059ff; }
+    .back-link {
+      font-size:0.75rem;
+      font-family:'JetBrains Mono',monospace;
+      color:#5b6e6b;
+      background:#f0f2f5;
+      padding:0.4rem 0.9rem;
+      border-radius:60px;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      transition:background 0.15s;
+    }
+    .back-link:hover { background:#e2ddd4; color:#1e2f2b; }
+    .title-block h1 {
+      font-size:clamp(1.7rem,5vw,2.6rem);
+      font-weight:800;
+      letter-spacing:-0.03em;
+      color:#070707;
+      margin-bottom:0.4rem;
+    }
+    .title-block h1 span { color:#e5b13b; }
+    .subhead {
+      font-size:0.85rem;
+      color:#5b6e6b;
+      margin-top:0.5rem;
+    }
+
+    /* ── SECTION SHELL ── */
+    .section {
+      padding:1.5rem 2.5rem 2rem;
+      border-bottom:1px solid #edeae2;
+    }
+    .section-header {
+      display:flex;
+      align-items:baseline;
+      gap:0.75rem;
+      margin-bottom:1.5rem;
+      flex-wrap:wrap;
+    }
+    .section-number {
+      background:#1e2f2b;
+      color:#fae669;
+      font-weight:700;
+      font-size:0.78rem;
+      padding:0.2rem 0.8rem;
+      border-radius:30px;
+      font-family:'JetBrains Mono',monospace;
+    }
+    .section-title {
+      font-weight:700;
+      font-size:1.2rem;
+      letter-spacing:-0.2px;
+      color:#1e2f2b;
+    }
+    .section-tagline {
+      margin-left:auto;
+      font-size:0.68rem;
+      color:#8c9a91;
+      background:#f4f2ec;
+      padding:0.22rem 0.8rem;
+      border-radius:30px;
+    }
+
+    /* ── SETTINGS PANEL ── */
+    .settings-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:1rem;
+    }
+    .settings-grid.smtp-grid {
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    }
+    .field-group { display:flex; flex-direction:column; gap:0.4rem; }
+    .field-label {
+      font-size:0.7rem;
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:0.8px;
+      color:#3e4d44;
+      font-family:'JetBrains Mono',monospace;
+    }
+    .field-wrap { position:relative; }
+    .field-wrap input, .field-wrap select {
+      width:100%;
+      padding:0.65rem 1rem;
+      border:1.5px solid #e2ddd4;
+      border-radius:0.75rem;
+      font-size:0.85rem;
+      font-family:'Inter',sans-serif;
+      color:#1a1e2b;
+      background:#fefcf8;
+      outline:none;
+      transition:border-color 0.15s,box-shadow 0.15s;
+      appearance:none;
+    }
+    .field-wrap input:focus, .field-wrap select:focus {
+      border-color:#e5b13b;
+      box-shadow:0 0 0 3px rgba(229,177,59,0.12);
+      background:#fff;
+    }
+    .field-wrap input::placeholder { color:#b0a99a; }
+    .toggle-pw {
+      position:absolute;
+      right:0.8rem;
+      top:50%;
+      transform:translateY(-50%);
+      background:none;
+      border:none;
+      cursor:pointer;
+      color:#8c9a91;
+      font-size:0.72rem;
+      font-family:'JetBrains Mono',monospace;
+    }
+    .settings-note {
+      font-size:0.72rem;
+      color:#8c9a91;
+      font-family:'JetBrains Mono',monospace;
+      margin-top:0.75rem;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .settings-note .dot {
+      width:7px; height:7px;
+      border-radius:50%;
+      background:#e2b74b;
+      flex-shrink:0;
+    }
+
+    /* ── UPLOAD ZONE ── */
+    .upload-zone {
+      border:2px dashed #d6cdb5;
+      border-radius:1.25rem;
+      padding:2.5rem;
+      text-align:center;
+      cursor:pointer;
+      transition:all 0.18s;
+      background:#fefcf8;
+      position:relative;
+    }
+    .upload-zone:hover, .upload-zone.drag { border-color:#e5b13b; background:#fffdf6; }
+    .upload-icon { font-size:2.5rem; margin-bottom:0.75rem; }
+    .upload-zone h3 { font-size:1rem; font-weight:700; color:#1e2f2b; margin-bottom:0.3rem; }
+    .upload-zone p { font-size:0.78rem; color:#7a8b7e; }
+    .upload-zone input { display:none; }
+    .file-loaded-banner {
+      display:none;
+      background:#e2f0e6;
+      border-left:3px solid #2a9d6e;
+      border-radius:0.75rem;
+      padding:0.7rem 1.1rem;
+      font-size:0.8rem;
+      color:#1a5c38;
+      font-family:'JetBrains Mono',monospace;
+      margin-top:1rem;
+    }
+    .file-loaded-banner.visible { display:block; }
+
+    /* CONFIG ROW */
+    .config-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:1.25rem;
+      margin-top:1.25rem;
+      align-items:flex-end;
+    }
+    .config-row .field-group { flex:1; min-width:160px; }
+
+    /* ── PROCESS BTN ── */
+    .process-zone {
+      padding:1rem 2.5rem 1.5rem;
+      background:#faf7f0;
+      border-bottom:1px solid #edeae2;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      gap:1rem;
+    }
+    .process-note { font-size:0.75rem; color:#6b7c70; max-width:55%; line-height:1.55; }
+    .btn-process {
+      background:#e5b13b;
+      border:none;
+      font-weight:700;
+      font-size:0.9rem;
+      padding:0.82rem 1.8rem;
+      border-radius:60px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      cursor:pointer;
+      font-family:'Inter',sans-serif;
+      color:#1a1e2b;
+      transition:0.15s;
+    }
+    .btn-process:disabled { opacity:0.4; cursor:not-allowed; background:#cdc6b8; }
+    .btn-process:not(:disabled):hover { background:#0059ff; color:#fff; }
+
+    /* ── PREVIEW TABLE ── */
+    .preview-section { padding:1.5rem 2.5rem 2rem; border-bottom:1px solid #edeae2; }
+    .preview-summary-row {
+      display:flex;
+      flex-wrap:wrap;
+      gap:1rem;
+      margin-bottom:1.5rem;
+    }
+    .psm-card {
+      background:#fefaf2;
+      border:1px solid #e8e0d2;
+      border-radius:1rem;
+      padding:0.8rem 1.2rem;
+      text-align:center;
+      min-width:120px;
+    }
+    .psm-num { font-size:1.6rem; font-weight:800; color:#1e2f2b; }
+    .psm-lbl { font-size:0.65rem; text-transform:uppercase; letter-spacing:0.5px; color:#8c9a91; margin-top:2px; }
+
+    .preview-table-wrap { overflow-x:auto; border-radius:1rem; border:1px solid #e8e0d2; }
+    table.preview-tbl {
+      width:100%;
+      border-collapse:collapse;
+      font-size:0.78rem;
+    }
+    table.preview-tbl thead tr {
+      background:#f4f2ec;
+    }
+    table.preview-tbl th {
+      padding:0.65rem 0.9rem;
+      text-align:left;
+      font-weight:700;
+      font-size:0.7rem;
+      text-transform:uppercase;
+      letter-spacing:0.5px;
+      color:#4a5a52;
+      font-family:'JetBrains Mono',monospace;
+      white-space:nowrap;
+    }
+    table.preview-tbl td {
+      padding:0.6rem 0.9rem;
+      border-top:1px solid #edeae2;
+      vertical-align:middle;
+    }
+    table.preview-tbl tbody tr:hover { background:#fefaf4; }
+    .asc-name-cell { font-weight:600; color:#1e2f2b; }
+    .email-chip {
+      display:inline-block;
+      background:#f0f2f5;
+      border-radius:20px;
+      padding:0.2rem 0.55rem;
+      font-size:0.65rem;
+      font-family:'JetBrains Mono',monospace;
+      color:#2c3e4e;
+      margin:1px 2px;
+      word-break:break-all;
+    }
+    .val-cell { font-family:'JetBrains Mono',monospace; font-size:0.72rem; color:#3e4d44; }
+    .warn-row td { background:#fff8ee !important; }
+    .warn-badge {
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      background:#fef2d0;
+      border:1px solid #e2b74b;
+      border-radius:30px;
+      padding:0.2rem 0.6rem;
+      font-size:0.65rem;
+      font-family:'JetBrains Mono',monospace;
+      color:#7a5a10;
+    }
+    .status-cell { min-width:110px; }
+    .status-dot {
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      font-size:0.7rem;
+      font-family:'JetBrains Mono',monospace;
+    }
+    .dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+    .dot.green { background:#2a9d6e; }
+    .dot.yellow { background:#e2b74b; }
+    .dot.red { background:#c94f31; }
+    .dot.grey { background:#b0a99a; }
+    .dot.blue { background:#0059ff; }
+
+    .row-action-btn {
+      background:transparent;
+      border:1.5px solid #d4c9b6;
+      border-radius:30px;
+      padding:0.3rem 0.7rem;
+      font-size:0.68rem;
+      font-family:'JetBrains Mono',monospace;
+      cursor:pointer;
+      transition:0.15s;
+      color:#4a5a52;
+      white-space:nowrap;
+    }
+    .row-action-btn:hover { background:#e5b13b; border-color:#e5b13b; color:#1a1e2b; }
+    .row-action-btn:disabled { opacity:0.35; cursor:not-allowed; }
+    .row-action-btn.sent { background:#e2f0e6; border-color:#2a9d6e; color:#1a5c38; }
+    .row-action-btn.error { background:#fde8e8; border-color:#c94f31; color:#7a1e1e; }
+    .row-action-btn.skip-btn { color:#c94f31; border-color:#c94f31; }
+    .row-action-btn.skip-btn:hover { background:#fde8e8; }
+    .row-action-btn.skipped { background:#f4f2ec; border-color:#ccc; color:#999; cursor:default; }
+
+    /* SEND ALL BAR */
+    .send-all-bar {
+      padding:1rem 2.5rem;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      gap:1rem;
+      background:#faf7f0;
+      border-bottom:1px solid #edeae2;
+    }
+    .send-progress-wrap { flex:1; min-width:200px; }
+    .send-progress-label {
+      font-size:0.72rem;
+      font-family:'JetBrains Mono',monospace;
+      color:#5b6e6b;
+      margin-bottom:0.35rem;
+    }
+    .bar-bg { background:#e5dfd3; border-radius:30px; height:7px; overflow:hidden; }
+    .bar-fill { background:#e5b13b; height:100%; width:0%; transition:width 0.3s; border-radius:30px; }
+    .btn-send-all {
+      background:#1e2f2b;
+      color:#fae669;
+      border:none;
+      font-weight:700;
+      font-size:0.88rem;
+      padding:0.82rem 1.8rem;
+      border-radius:60px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-family:'Inter',sans-serif;
+      transition:0.15s;
+    }
+    .btn-send-all:disabled { opacity:0.4; cursor:not-allowed; }
+    .btn-send-all:not(:disabled):hover { background:#0059ff; color:#fff; }
+    .btn-reset-flow {
+      background:transparent;
+      border:1.5px solid #b9b09b;
+      padding:0.82rem 1.4rem;
+      border-radius:60px;
+      font-size:0.82rem;
+      cursor:pointer;
+      font-family:'Inter',sans-serif;
+      transition:0.15s;
+    }
+    .btn-reset-flow:hover { background:#f0ede5; }
+    .spinner {
+      width:13px; height:13px;
+      border:2px solid rgba(255,255,255,0.3);
+      border-top-color:#fff;
+      border-radius:50%;
+      animation:spin 0.7s linear infinite;
+      display:none;
+    }
+    .btn-send-all.loading .spinner { display:block; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* TOAST */
+    .toast-msg {
+      position:fixed;
+      bottom:1.5rem;
+      left:50%;
+      transform:translateX(-50%);
+      background:#1e2f2b;
+      color:#fae669;
+      padding:0.6rem 1.4rem;
+      border-radius:60px;
+      font-size:0.8rem;
+      font-weight:500;
+      z-index:1200;
+      opacity:0;
+      transition:0.2s;
+      pointer-events:none;
+      white-space:nowrap;
+    }
+    .toast-msg.show { opacity:1; }
+
+    .footer {
+      background:#f8f5ed;
+      padding:0.9rem 2rem;
+      font-size:0.68rem;
+      text-align:center;
+      color:#7a8b7c;
+      border-top:1px solid #e7dfcf;
+    }
+
+    @media (max-width:720px) {
+      body { padding:1rem; }
+      .hero, .section, .preview-section, .process-zone, .send-all-bar { padding-left:1.25rem; padding-right:1.25rem; }
+      .process-note { max-width:100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ── HEADER ── -->
+  <div class="hero">
+    <div class="hero-top">
+      <div class="logo-area">
+        <img class="logo" src="https://rvsolutions.in/sites/default/files/logo-inner.png" alt="RV Solutions"
+             onerror="this.style.display='none';document.getElementById('lt').style.display='block'">
+        <div class="logo-text" id="lt" style="display:none">RV <span>Solutions</span></div>
+      </div>
+      <a class="back-link" href="/">← Back to Portal</a>
+    </div>
+    <div class="title-block">
+      <h1>Send Inventory <span>Mails</span></h1>
+      <p class="subhead">Upload the master stock file, configure mail settings, preview all ASC emails, then send in one go.</p>
+    </div>
+  </div>
+
+  <!-- ── SECTION 1: SMTP SETTINGS ── -->
+  <div class="section" id="smtpSection">
+    <div class="section-header">
+      <div class="section-number">01</div>
+      <div class="section-title">Mail Server Settings</div>
+      <div class="section-tagline">Session only · not stored</div>
+    </div>
+
+    <div class="settings-grid smtp-grid">
+      <div class="field-group">
+        <label class="field-label">SMTP Host</label>
+        <div class="field-wrap">
+          <input type="text" id="smtpHost" placeholder="mail.rvsolutions.in" autocomplete="off">
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">SMTP Port</label>
+        <div class="field-wrap">
+          <input type="number" id="smtpPort" placeholder="465" autocomplete="off">
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Security</label>
+        <div class="field-wrap">
+          <select id="smtpSecurity">
+            <option value="ssl">SSL / TLS (port 465)</option>
+            <option value="tls">STARTTLS (port 587)</option>
+            <option value="none">None (port 25)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">From Name</label>
+        <div class="field-wrap">
+          <input type="text" id="smtpFromName" placeholder="Central Warehouse Team" autocomplete="off">
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">From Email</label>
+        <div class="field-wrap">
+          <input type="email" id="smtpFromEmail" placeholder="warehouse@rvsolutions.in" autocomplete="off">
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Username</label>
+        <div class="field-wrap">
+          <input type="text" id="smtpUser" placeholder="your@rvsolutions.in" autocomplete="off">
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Password</label>
+        <div class="field-wrap">
+          <input type="password" id="smtpPass" placeholder="••••••••" autocomplete="off">
+          <button class="toggle-pw" type="button" id="toggleSmtpPw">show</button>
+        </div>
+      </div>
+    </div>
+    <div class="settings-note">
+      Credentials are stored only for this browser session (sessionStorage) and are sent exclusively to your own <code>/api/send-asc-mail</code> endpoint to dispatch mail.
+    </div>
+  </div>
+
+  <!-- ── SECTION 2: UPLOAD & CONFIG ── -->
+  <div class="section" id="uploadSection">
+    <div class="section-header">
+      <div class="section-number">02</div>
+      <div class="section-title">Stock File & Configuration</div>
+      <div class="section-tagline">3-sheet master Excel required</div>
+    </div>
+
+    <!-- File drop zone -->
+    <div class="upload-zone" id="dropZone">
+      <div class="upload-icon">📂</div>
+      <h3>Drop or click to upload master stock file</h3>
+      <p>Requires sheets: <strong>Summary</strong> · <strong>Stock_Raw Data</strong> · <strong>STN_Raw Data</strong></p>
+      <input type="file" id="stockFileInput" accept=".xlsx,.xls">
+    </div>
+    <div class="file-loaded-banner" id="fileLoadedBanner"></div>
+
+    <!-- Config -->
+    <div class="config-row">
+      <div class="field-group">
+        <label class="field-label">Mail Sending Date</label>
+        <div class="field-wrap">
+          <input type="date" id="mailDate">
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Dispatch Deadline (days after)</label>
+        <div class="field-wrap">
+          <input type="number" id="deadlineDays" value="6" min="1" max="30">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── PROCESS BUTTON ── -->
+  <div class="process-zone">
+    <div class="process-note">Upload the stock file and fill in SMTP settings, then click Process to parse ASC data and generate the preview. <strong>No emails are sent yet.</strong></div>
+    <button class="btn-process" id="processBtn" disabled>Process File &amp; Preview</button>
+  </div>
+
+  <!-- ── PREVIEW (hidden until processed) ── -->
+  <div class="preview-section" id="previewSection" style="display:none">
+    <div class="section-header" style="margin-bottom:1rem">
+      <div class="section-number">03</div>
+      <div class="section-title">Email Preview</div>
+      <div class="section-tagline" id="previewTagline"></div>
+    </div>
+
+    <div class="preview-summary-row" id="previewSummaryRow"></div>
+
+    <div class="preview-table-wrap">
+      <table class="preview-tbl" id="previewTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>ASC Name</th>
+            <th>ASM</th>
+            <th>To</th>
+            <th>CC</th>
+            <th>Attachment</th>
+            <th>Stk Qty</th>
+            <th>STN Qty</th>
+            <th>Total Val</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="previewTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── SEND ALL BAR (hidden until processed) ── -->
+  <div class="send-all-bar" id="sendAllBar" style="display:none">
+    <div class="send-progress-wrap">
+      <div class="send-progress-label" id="sendProgressLabel">Ready to send · 0 sent</div>
+      <div class="bar-bg"><div class="bar-fill" id="sendBarFill"></div></div>
+    </div>
+    <button class="btn-reset-flow" id="resetBtn">↻ Start Over</button>
+    <button class="btn-send-all" id="sendAllBtn">
+      <div class="spinner"></div>
+      <span id="sendAllLabel">📬 Send All Mails</span>
+    </button>
+  </div>
+
+  <div class="footer">Automation Engineered by Harpinder Singh &nbsp;·&nbsp; RV Solutions &nbsp;·&nbsp; all processing in-browser</div>
+</div>
+<div id="globalToast" class="toast-msg"></div>
+
+<script>
+//  STATE
+let masterWb = null;       // parsed XLSX workbook
+let ascList = [];          // array of ASC objects built during process
+let isSending = false;
+
+// Restore session SMTP
+const SF = ['smtpHost','smtpPort','smtpSecurity','smtpFromName','smtpFromEmail','smtpUser'];
+SF.forEach(id => {
+  const v = sessionStorage.getItem(id);
+  if (v) document.getElementById(id).value = v;
+});
+// Save on change
+SF.forEach(id => {
+  document.getElementById(id).addEventListener('change', () => {
+    sessionStorage.setItem(id, document.getElementById(id).value);
+  });
+});
+
+// Toggle SMTP password visibility
+document.getElementById('toggleSmtpPw').addEventListener('click', function() {
+  const inp = document.getElementById('smtpPass');
+  const show = inp.type === 'password';
+  inp.type = show ? 'text' : 'password';
+  this.textContent = show ? 'hide' : 'show';
+});
+
+// Default mail date to today
+const today = new Date();
+document.getElementById('mailDate').value = today.toISOString().slice(0,10);
+
+//  HELPERS
+function showToast(msg, isErr=false) {
+  const t = document.getElementById('globalToast');
+  t.textContent = msg;
+  t.style.background = isErr ? '#b13a2c' : '#1e2f2b';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function fmtDate(dateStr) {
+  // "2026-04-09"  →  "09-Apr-2026"
+  const d = new Date(dateStr + 'T00:00:00');
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mon = d.toLocaleString('en-GB',{month:'short'});
+  return `${dd}-${mon}-${d.getFullYear()}`;
+}
+
+function addDays(dateStr, n) {
+  const d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0,10);
+}
+
+function cleanNum(v) {
+  const n = parseFloat(String(v||'').replace(/[₹,\s]/g,''));
+  return isNaN(n) ? 0 : n;
+}
+
+function formatVal(v) {
+  if (v >= 1e7) return (v/1e7).toFixed(1)+'Cr';
+  if (v >= 1e5) return (v/1e5).toFixed(1)+'L';
+  return v.toLocaleString('en-IN');
+}
+
+//  FILE UPLOAD / DRAG DROP
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('stockFileInput');
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) handleStockFile(file);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) handleStockFile(fileInput.files[0]);
+});
+
+async function handleStockFile(file) {
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type:'array', cellDates:true });
+    // Validate sheets
+    const required = ['Summary','Stock_Raw Data','STN_Raw Data'];
+    const missing = required.filter(s => !wb.SheetNames.includes(s));
+    if (missing.length) {
+      showToast(`Missing sheets: ${missing.join(', ')}`, true);
+      return;
+    }
+    masterWb = wb;
+    document.getElementById('fileLoadedBanner').textContent =
+      `✓ Loaded: ${file.name}  ·  Sheets: ${wb.SheetNames.join(', ')}`;
+    document.getElementById('fileLoadedBanner').classList.add('visible');
+    checkProcessEnabled();
+    showToast(`Loaded ${file.name}`);
+  } catch(e) {
+    showToast('Error reading file: ' + e.message, true);
+  }
+}
+
+function checkProcessEnabled() {
+  const smtp = document.getElementById('smtpHost').value.trim()
+             && document.getElementById('smtpUser').value.trim()
+             && document.getElementById('smtpPass').value.trim()
+             && document.getElementById('smtpFromEmail').value.trim();
+  document.getElementById('processBtn').disabled = !(masterWb && smtp);
+}
+
+// Enable process btn when SMTP fields filled
+['smtpHost','smtpUser','smtpPass','smtpFromEmail'].forEach(id => {
+  document.getElementById(id).addEventListener('input', checkProcessEnabled);
+});
+
+//  PROCESS FILE → BUILD ASC LIST
+document.getElementById('processBtn').addEventListener('click', processFile);
+
+function sheetToRows(wb, sheetName) {
+  const ws = wb.Sheets[sheetName];
+  return XLSX.utils.sheet_to_json(ws, { defval:'', raw:false });
+}
+
+function processFile() {
+  if (!masterWb) return;
+
+  const summaryRows  = sheetToRows(masterWb, 'Summary');
+  const stockRows    = sheetToRows(masterWb, 'Stock_Raw Data');
+  const stnRows      = sheetToRows(masterWb, 'STN_Raw Data');
+
+  const mailDate    = document.getElementById('mailDate').value;
+  const deadlineDays = parseInt(document.getElementById('deadlineDays').value) || 6;
+  const deadlineDate = addDays(mailDate, deadlineDays);
+
+  ascList = [];
+
+  for (const row of summaryRows) {
+    const ascName = String(row['ASC Name']||'').trim();
+    if (!ascName) continue;
+
+    // Mail IDs
+    const toEmail  = String(row['ASC Mail ID']||'').trim();
+    const asmEmail = String(row['ASM Mail ID']||'').trim();
+    const ccEmails = [
+      row['CC Mail ID 1'], row['CC Mail ID 2'], row['CC Mail ID 3'],
+      row['CC Mail ID 4'], row['CC Mail ID 5'], asmEmail
+    ].map(e => String(e||'').trim()).filter(e => e && e.includes('@'));
+
+    // Qty / value from summary
+    const goodQty  = cleanNum(row['Good Qty']);
+    const defQty   = cleanNum(row['Def Qty']);
+    const stkQty   = cleanNum(row['Total Stk QTY']);
+    const stnQty   = cleanNum(row['STN QTY']);
+    const totalVal = cleanNum(row['Final Value with Tax'] || row['Total Val (Stk+STN)']);
+
+    // Filter stock rows for this ASC
+    const ascStockRows = stockRows.filter(r =>
+      String(r['Location Name']||'').trim() === ascName ||
+      String(r['ASC Code']||'').trim() === ascName
+    );
+    const ascStnRows = stnRows.filter(r =>
+      String(r['Name of Receipient']||'').trim() === ascName
+    );
+
+    // Build per-ASC workbook (as base64)
+    const ascWb = XLSX.utils.book_new();
+    // Summary sheet — single row for this ASC
+    const sumWs = XLSX.utils.json_to_sheet([row]);
+    XLSX.utils.book_append_sheet(ascWb, sumWs, 'Summary');
+    // Stock_Raw Data
+    const stockWs = ascStockRows.length
+      ? XLSX.utils.json_to_sheet(ascStockRows)
+      : XLSX.utils.aoa_to_sheet([Object.keys(stockRows[0]||{})]);
+    XLSX.utils.book_append_sheet(ascWb, stockWs, 'Stock_Raw Data');
+    // STN_Raw Data
+    const stnWs = ascStnRows.length
+      ? XLSX.utils.json_to_sheet(ascStnRows)
+      : XLSX.utils.aoa_to_sheet([Object.keys(stnRows[0]||{})]);
+    XLSX.utils.book_append_sheet(ascWb, stnWs, 'STN_Raw Data');
+
+    // Filename: ASCName_InventoryAsOn_09-Apr-2026.xlsx  (sanitise name)
+    const safeName = ascName.replace(/[/\\:*?"<>|]/g,'_');
+    const attachName = `${safeName}_InventoryAsOn_${fmtDate(mailDate)}.xlsx`;
+
+    // Base64 of workbook
+    const wbBin = XLSX.write(ascWb, { bookType:'xlsx', type:'base64' });
+
+    // Zero-stock flag
+    const isZeroStock = (stkQty === 0 && stnQty === 0);
+
+    ascList.push({
+      index: ascList.length,
+      ascName,
+      asm: String(row['ASM']||'').trim(),
+      toEmail,
+      ccEmails,
+      attachName,
+      attachBase64: wbBin,
+      goodQty, defQty, stkQty, stnQty, totalVal,
+      mailDate: fmtDate(mailDate),
+      deadlineDate: fmtDate(deadlineDate),
+      isZeroStock,
+      status: isZeroStock ? 'warn' : 'ready',  // warn = needs user decision
+      skipped: false
+    });
+  }
+
+  renderPreview();
+}
+
+//  RENDER PREVIEW TABLE
+function renderPreview() {
+  const total    = ascList.length;
+  const warns    = ascList.filter(a => a.isZeroStock).length;
+  const ready    = ascList.filter(a => !a.isZeroStock).length;
+
+  document.getElementById('previewTagline').textContent = `${total} ASCs · ${warns} zero-stock warnings`;
+  document.getElementById('previewSummaryRow').innerHTML = `
+    <div class="psm-card"><div class="psm-num">${total}</div><div class="psm-lbl">Total ASCs</div></div>
+    <div class="psm-card"><div class="psm-num" style="color:#2a9d6e">${ready}</div><div class="psm-lbl">Ready to send</div></div>
+    <div class="psm-card"><div class="psm-num" style="color:#e2b74b">${warns}</div><div class="psm-lbl">Zero-stock warns</div></div>
+  `;
+
+  const tbody = document.getElementById('previewTbody');
+  tbody.innerHTML = ascList.map(asc => buildRow(asc)).join('');
+
+  document.getElementById('previewSection').style.display = 'block';
+  document.getElementById('sendAllBar').style.display = 'flex';
+  document.getElementById('sendAllBtn').disabled = false;
+  updateSendBar();
+  showToast(`Processed ${total} ASCs`);
+}
+
+function buildRow(asc) {
+  const ccHtml = asc.ccEmails.map(e =>
+    `<span class="email-chip">${e}</span>`).join('') || '<span style="color:#ccc;font-size:0.7rem">—</span>';
+
+  let statusHtml;
+  if (asc.status === 'sent') {
+    statusHtml = `<span class="status-dot"><span class="dot green"></span>Sent</span>`;
+  } else if (asc.status === 'error') {
+    statusHtml = `<span class="status-dot"><span class="dot red"></span>Error</span>`;
+  } else if (asc.skipped) {
+    statusHtml = `<span class="status-dot"><span class="dot grey"></span>Skipped</span>`;
+  } else if (asc.isZeroStock) {
+    statusHtml = `<span class="warn-badge">⚠ Zero stock</span>`;
+  } else {
+    statusHtml = `<span class="status-dot"><span class="dot blue"></span>Ready</span>`;
+  }
+
+  let actionsHtml;
+  if (asc.status === 'sent') {
+    actionsHtml = `<button class="row-action-btn sent" disabled>✓ Sent</button>`;
+  } else if (asc.skipped) {
+    actionsHtml = `<button class="row-action-btn skipped" disabled>Skipped</button>`;
+  } else {
+    const skipBtn = asc.isZeroStock
+      ? `<button class="row-action-btn skip-btn" onclick="skipAsc(${asc.index})">Skip</button>`
+      : `<button class="row-action-btn skip-btn" onclick="skipAsc(${asc.index})">Skip</button>`;
+    actionsHtml = `
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="row-action-btn" id="sendBtn-${asc.index}" onclick="sendSingle(${asc.index})">Send</button>
+        <button class="row-action-btn" onclick="previewMail(${asc.index})">Preview</button>
+        ${skipBtn}
+      </div>`;
+  }
+
+  const rowClass = asc.isZeroStock && !asc.skipped && asc.status !== 'sent' ? 'warn-row' : '';
+  return `
+    <tr class="${rowClass}" id="row-${asc.index}">
+      <td class="val-cell">${asc.index+1}</td>
+      <td class="asc-name-cell">${asc.ascName}</td>
+      <td style="font-size:0.72rem;color:#5b6e6b">${asc.asm||'—'}</td>
+      <td><span class="email-chip">${asc.toEmail||'—'}</span></td>
+      <td>${ccHtml}</td>
+      <td style="font-size:0.68rem;font-family:'JetBrains Mono',monospace;color:#4a5a52;word-break:break-all">${asc.attachName}</td>
+      <td class="val-cell">${asc.stkQty}</td>
+      <td class="val-cell">${asc.stnQty}</td>
+      <td class="val-cell">${formatVal(asc.totalVal)}</td>
+      <td class="status-cell" id="status-${asc.index}">${statusHtml}</td>
+      <td id="actions-${asc.index}">${actionsHtml}</td>
+    </tr>`;
+}
+
+function refreshRow(idx) {
+  const asc = ascList[idx];
+  const row = document.getElementById(`row-${idx}`);
+  if (!row) return;
+  row.outerHTML = buildRow(asc);
+}
+
+//  PREVIEW MAIL BODY (modal-lite)
+function previewMail(idx) {
+  const asc = ascList[idx];
+  const body = buildMailBody(asc);
+  const win = window.open('','_blank','width=700,height=600,scrollbars=yes');
+  win.document.write(`<!DOCTYPE html><html><head>
+    <meta charset="UTF-8">
+    <title>Mail Preview — ${asc.ascName}</title>
+    <style>
+      body{font-family:Arial,sans-serif;padding:2rem;background:#fefaf0;color:#1a1e2b;font-size:14px;line-height:1.65}
+      .header{background:#1e2f2b;color:#fae669;padding:0.6rem 1.2rem;border-radius:8px;margin-bottom:1.5rem;font-size:13px}
+      pre{white-space:pre-wrap;word-break:break-word;background:#fff;padding:1.5rem;border-radius:10px;border:1px solid #e9e6df}
+    </style>
+    </head><body>
+    <div class="header">
+      <strong>To:</strong> ${asc.toEmail} &nbsp;|&nbsp;
+      <strong>CC:</strong> ${asc.ccEmails.join(', ')||'—'} &nbsp;|&nbsp;
+      <strong>Subject:</strong> Inventory Reminder — ${asc.ascName} &nbsp;|&nbsp;
+      <strong>Attachment:</strong> ${asc.attachName}
+    </div>
+    <pre>${body}</pre>
+  </body></html>`);
+}
+
+function buildMailBody(asc) {
+  return `Dear ${asc.ascName},
+
+We hope you are doing well.
+
+This is a gentle reminder to review your available stock (as per attached sheet) and arrange the dispatch of all pending items to the RV Warehouse by ${asc.mailDate}. We kindly request that all materials are sent in complete and good condition to avoid any issues upon receipt.
+
+In case we do not receive the complete stock by ${asc.deadlineDate}, or if it is received incomplete or not in proper condition, we may have to assume that the stock has not been dispatched. Accordingly, such pending stock may be treated as penalty accepted at your end, and further billing may be processed for the same.
+
+We truly appreciate your cooperation and support in ensuring the timely and smooth handling of this matter.
+
+Please feel free to reach out to our warehouse team in case of any concerns or clarifications.
+
+Thanks,
+Central Warehouse Team
+RV Solutions`;
+}
+
+//  SKIP / SEND SINGLE
+function skipAsc(idx) {
+  ascList[idx].skipped = true;
+  ascList[idx].status = 'skipped';
+  refreshRow(idx);
+  updateSendBar();
+}
+
+async function sendSingle(idx) {
+  const asc = ascList[idx];
+  if (asc.skipped || asc.status === 'sent') return;
+
+  const btn = document.getElementById(`sendBtn-${idx}`);
+  if (btn) { btn.disabled = true; btn.textContent = '…'; }
+
+  const success = await dispatchMail(asc);
+  asc.status = success ? 'sent' : 'error';
+  refreshRow(idx);
+  updateSendBar();
+}
+
+//  SEND ALL
+document.getElementById('sendAllBtn').addEventListener('click', async () => {
+  if (isSending) return;
+  isSending = true;
+  const btn = document.getElementById('sendAllBtn');
+  btn.classList.add('loading');
+  document.getElementById('sendAllLabel').textContent = 'Sending…';
+  btn.disabled = true;
+
+  const toSend = ascList.filter(a => !a.skipped && a.status !== 'sent');
+  for (const asc of toSend) {
+    const success = await dispatchMail(asc);
+    asc.status = success ? 'sent' : 'error';
+    refreshRow(asc.index);
+    updateSendBar();
+    await new Promise(r => setTimeout(r, 300)); // small gap between sends
+  }
+
+  btn.classList.remove('loading');
+  document.getElementById('sendAllLabel').textContent = '📬 Send All Mails';
+  btn.disabled = false;
+  isSending = false;
+
+  const sentCount = ascList.filter(a => a.status === 'sent').length;
+  const errCount  = ascList.filter(a => a.status === 'error').length;
+  showToast(`Done — ${sentCount} sent, ${errCount} errors`, errCount > 0);
+});
+
+//  DISPATCH MAIL — calls /api/send-asc-mail
+async function dispatchMail(asc) {
+  const smtp = {
+    host:      document.getElementById('smtpHost').value.trim(),
+    port:      parseInt(document.getElementById('smtpPort').value) || 465,
+    security:  document.getElementById('smtpSecurity').value,
+    fromName:  document.getElementById('smtpFromName').value.trim() || 'Central Warehouse Team',
+    fromEmail: document.getElementById('smtpFromEmail').value.trim(),
+    user:      document.getElementById('smtpUser').value.trim(),
+    pass:      document.getElementById('smtpPass').value
+  };
+
+  const payload = {
+    smtp,
+    to:      asc.toEmail,
+    cc:      asc.ccEmails,
+    subject: `Inventory Reminder — ${asc.ascName} | Dispatch by ${asc.deadlineDate}`,
+    body:    buildMailBody(asc),
+    attachName:   asc.attachName,
+    attachBase64: asc.attachBase64
+  };
+
+  try {
+    const res = await fetch('/api/send-asc-mail', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (res.ok && data.ok) return true;
+    showToast(`${asc.ascName}: ${data.error||'Send failed'}`, true);
+    return false;
+  } catch(e) {
+    showToast(`${asc.ascName}: Network error`, true);
+    return false;
+  }
+}
+
+//  SEND PROGRESS BAR
+function updateSendBar() {
+  const total   = ascList.length;
+  const sent    = ascList.filter(a => a.status === 'sent').length;
+  const skipped = ascList.filter(a => a.skipped).length;
+  const errors  = ascList.filter(a => a.status === 'error').length;
+  const done    = sent + skipped;
+  const pct     = total ? Math.round((done / total) * 100) : 0;
+  document.getElementById('sendBarFill').style.width = pct + '%';
+  document.getElementById('sendProgressLabel').textContent =
+    `${sent} sent · ${skipped} skipped · ${errors} errors · ${total - done} remaining`;
+}
+
+//  RESET
+document.getElementById('resetBtn').addEventListener('click', () => {
+  masterWb = null;
+  ascList = [];
+  fileInput.value = '';
+  document.getElementById('fileLoadedBanner').classList.remove('visible');
+  document.getElementById('previewSection').style.display = 'none';
+  document.getElementById('sendAllBar').style.display = 'none';
+  document.getElementById('processBtn').disabled = true;
+  showToast('Reset — ready to upload a new file');
+});
+</script>
+</body>
+</html>

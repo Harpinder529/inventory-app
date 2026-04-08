@@ -3,941 +3,252 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>WEEKLY INVENTORY REPORT // RV SOLUTIONS</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <title>RV Solutions · Automation Portal</title>
+  <link rel="icon" type="image/png" href="/public/logo.png">
+  <link rel="apple-touch-icon" href="/public/logo.png">
   <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       background: #fefaf0;
       font-family: 'Inter', sans-serif;
       color: #1a1e2b;
-      line-height: 1.4;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       padding: 2rem 1.5rem;
     }
-
-    /* MAIN CONTAINER — max width + breathing space */
-    .container {
-      max-width: 1280px;
-      margin: 0 auto;
-      background: #ffffff;
-      border-radius: 2rem;
-      box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.02);
-      overflow: hidden;
-      transition: all 0.2s;
-    }
-
-    /* HEADER — spacious & clean */
-    .hero {
-      padding: 2rem 2.5rem;
-      background: #ffffff;
-      border-bottom: 1px solid #e9e6df;
-    }
-    .hero-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-    .logo {
-      height: 42px;
-      opacity: 0.9;
-    }
-    .status-chip {
-      background: #f0f2f5;
-      border-radius: 60px;
-      padding: 0.5rem 1rem;
-      font-size: 0.75rem;
-      font-weight: 500;
-      letter-spacing: 0.3px;
-      font-family: 'JetBrains Mono', monospace;
-      color: #2c3e4e;
-    }
-    .title-block h1 {
-      font-size: clamp(2rem, 5vw, 3.2rem);
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      color: #070707;
-      margin-bottom: 0.5rem;
-    }
-    .title-block h1 span {
-      color: #0059ff;
-    }
-    .subhead {
-      font-size: 0.9rem;
-      color: #5b6e6b;
-      max-width: 560px;
-      border-left: 3px solid #e2b74b;
-      padding-left: 1rem;
-      margin-top: 0.5rem;
-    }
-    .stat-badge {
-      background: #fef5e7;
-      border-radius: 1rem;
-      padding: 0.5rem 1.2rem;
-      text-align: right;
-    }
-    .stat-number {
-      font-size: 2rem;
-      font-weight: 800;
-      color: #0059ff;
-      line-height: 1;
-    }
-    .stat-label {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: #7b8a7e;
-    }
-
-    /* SECTION CARDS */
-    .section {
-      padding: 1rem 2rem 1.8rem 2rem;
-      border-bottom: 1px solid #edeae2;
-    }
-    .section-header {
-      display: flex;
-      align-items: baseline;
-      gap: 0.75rem;
-      margin-bottom: 1.8rem;
-      flex-wrap: wrap;
-    }
-    .section-number {
-      background: #1e2f2b;
-      color: #fae669;
-      font-weight: 700;
-      font-size: 0.8rem;
-      padding: 0.2rem 0.8rem;
-      border-radius: 30px;
-      font-family: 'JetBrains Mono', monospace;
-    }
-    .section-title {
-      font-weight: 700;
-      font-size: 1.3rem;
-      letter-spacing: -0.2px;
-      color: #1e2f2b;
-    }
-    .section-tagline {
-      margin-left: auto;
-      font-size: 0.7rem;
-      color: #8c9a91;
-      background: #f4f2ec;
-      padding: 0.25rem 0.8rem;
-      border-radius: 30px;
-    }
-
-    /* GRID */
-    .files-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-      margin-top: 0.5rem;
-    }
-    .file-card {
-      background: #fefcf8;
-      border-radius: 1.25rem;
-      padding: 1.4rem 1.4rem 1.4rem 1.4rem;
-      transition: all 0.2s ease;
-      border: 1px solid #ece7dd;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-      position: relative;
-      display: flex;
-      flex-direction: column;
-    }
-    .file-card:hover {
-      border-color: #d6cdb5;
-      background: #fffdf9;
-    }
-    .card-title {
-      font-weight: 700;
-      font-size: 1rem;
-      margin-bottom: 0.5rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .card-desc {
-      font-size: 0.75rem;
-      color: #6f7c74;
-      margin-bottom: 1rem;
-      line-height: 1.45;
-    }
-    .file-status {
-      font-size: 0.7rem;
-      font-family: 'JetBrains Mono', monospace;
-      background: #f2efe8;
-      padding: 0.4rem 0.7rem;
-      border-radius: 12px;
-      margin-bottom: 1rem;
-      color: #4a5a52;
-      word-break: break-word;
-    }
-    .file-status.ok {
-      background: #e2f0e6;
-      color: #206b3e;
-      border-left: 3px solid #2a9d6e;
-    }
-    .file-status.builtin-ok {
-      background: #e6edf5;
-      color: #1f5f7a;
-      border-left: 3px solid #2f7f9f;
-    }
-    .btn-upload {
-      background: #444444;
-      border: none;
+    .wrap {
       width: 100%;
-      padding: 0.7rem 0.5rem;
-      border-radius: 40px;
-      font-weight: 600;
-      font-size: 0.75rem;
-      font-family: 'Inter', sans-serif;
-      color: white;
-      cursor: pointer;
-      transition: 0.15s;
-      text-align: center;
-      letter-spacing: 0.3px;
-      margin-top: 0.5rem;
+      max-width: 860px;
     }
-    .btn-upload.override {
-      background: transparent;
-      border: 1.5px solid #b9b09b;
-      color: #3e4d44;
+    /* HEADER */
+    .portal-header {
+      background: #fff;
+      border-radius: 2rem 2rem 0 0;
+      border: 1px solid #e9e6df;
+      border-bottom: none;
+      padding: 2rem 2.5rem 1.8rem;
     }
-    .btn-upload.override:hover {
-      background: #f0ede5;
-      border-color: #8f846c;
-    }
-    .btn-upload:hover {
-      background: #008cff;
-      transform: translateY(-1px);
-    }
-    .btn-download-template {
-      background: transparent;
-      border: 1px solid #d4c9b6;
-      color: #5f6b5f;
-      font-size: 0.7rem;
-      padding: 0.4rem 0.8rem;
-      border-radius: 40px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: all 0.15s;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-left: auto;
-    }
-    .btn-download-template:hover {
-      background: #e9e2d4;
-      border-color: #b0a086;
-      color: #1e2f2b;
-    }
-    .master-loading {
+    .header-top {
       display: flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 0.7rem;
-      color: #8c9a91;
-      margin: 6px 0 8px;
-    }
-    .spinner {
-      width: 12px;
-      height: 12px;
-      border: 2px solid #cbc3ae;
-      border-top-color: #1e2f2b;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .run-zone {
-      background: #faf7f0;
-      margin: 0 2rem 2rem 2rem;
-      border-radius: 1.5rem;
-      display: flex;
-      flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      padding: 1rem 1.8rem;
+      margin-bottom: 1.6rem;
+      flex-wrap: wrap;
       gap: 1rem;
-      border: 1px solid #e7e0d2;
     }
-    .run-note {
-      font-size: 0.75rem;
-      color: #6b7c70;
-      max-width: 60%;
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .logo { height: 38px; opacity: 0.9; }
+    .logo-text {
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.4px;
+      color: #070707;
+    }
+    .logo-text span { color: #0059ff; }
+    .env-chip {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      font-weight: 500;
+      background: #f0f2f5;
+      color: #2c3e4e;
+      padding: 0.4rem 0.9rem;
+      border-radius: 60px;
+    }
+    .portal-title h1 {
+      font-size: clamp(1.9rem, 5vw, 2.9rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #070707;
+      line-height: 1.1;
+    }
+    .portal-title h1 span { color: #0059ff; }
+    .portal-sub {
+      font-size: 0.88rem;
+      color: #5b6e6b;
+      margin-top: 0.7rem;
+      max-width: 540px;
       line-height: 1.5;
     }
-    .btn-run {
-      background: #e5b13b;
-      border: none;
-      font-weight: 700;
-      font-size: 0.9rem;
-      padding: 0.8rem 1.8rem;
-      border-radius: 60px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    /* MODULE CARDS */
+    .modules-body {
+      background: #fff;
+      border: 1px solid #e9e6df;
+      border-top: none;
+      border-radius: 0 0 2rem 2rem;
+      padding: 2rem 2.5rem 2.5rem;
+    }
+    .modules-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #8c9a91;
+      margin-bottom: 1.2rem;
+    }
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.25rem;
+    }
+    .module-card {
+      border-radius: 1.4rem;
+      border: 1.5px solid #e4dfd3;
+      padding: 1.75rem 1.75rem 1.5rem;
+      background: #fefcf8;
       cursor: pointer;
-      font-family: 'Inter', sans-serif;
-      transition: 0.15s;
-      color: #1a1e2b;
-    }
-    .btn-run:disabled {
-      opacity: 0.4;
-      background: #cdc6b8;
-      cursor: not-allowed;
-    }
-    .btn-run:not(:disabled):hover {
-      background: #0084ff;
-      color: white;
-      transform: scale(0.98);
-    }
-
-    /* progress & summary areas */
-    .progress-panel, .summary-panel {
-      padding: 1rem 2rem 2rem 2rem;
-      border-bottom: 1px solid #edeae2;
-    }
-    .progress-header, .summary-header {
-      font-weight: 700;
-      font-size: 1.1rem;
-      margin-bottom: 1rem;
+      transition: all 0.18s ease;
+      text-decoration: none;
+      color: inherit;
       display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .progress-bar-bg {
-      background: #e5dfd3;
-      border-radius: 30px;
-      height: 8px;
-      width: 100%;
+      flex-direction: column;
+      position: relative;
       overflow: hidden;
-      margin: 0.5rem 0 1rem;
     }
-    .progress-fill {
-      background: #e5b13b;
-      width: 0%;
-      height: 100%;
-      transition: width 0.35s ease;
+    .module-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: transparent;
+      transition: background 0.18s;
+      border-radius: 1.4rem 1.4rem 0 0;
     }
-    .steps-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      margin: 1rem 0 0.8rem;
+    .module-card:hover {
+      border-color: #c5bfb0;
+      background: #fffdf9;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.07);
     }
-    .step-badge {
-      background: #f0ede7;
-      border-radius: 40px;
-      padding: 0.3rem 1rem;
-      font-size: 0.7rem;
-      font-weight: 500;
-      color: #5a665e;
-      transition: all 0.1s;
+    .module-card.mail:hover::before { background: #e5b13b; }
+    .module-card.report:hover::before { background: #0059ff; }
+
+    .module-icon {
+      font-size: 2.2rem;
+      margin-bottom: 1rem;
+      line-height: 1;
+    }
+    .module-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #a09a8e;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.4rem;
+    }
+    .module-name {
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.3px;
+      color: #1e2f2b;
+      margin-bottom: 0.5rem;
+    }
+    .module-desc {
+      font-size: 0.8rem;
+      color: #6b7c72;
+      line-height: 1.55;
+      flex: 1;
+    }
+    .module-cta {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-    }
-    .step-badge.active {
-      background: #e5b13b;
-      color: #1e2f2b;
-      font-weight: 600;
-    }
-    .step-badge.done {
-      background: #d4e2d4;
-      color: #1f613a;
-    }
-    .log-box {
-      background: #f6f4ef;
-      border-radius: 1rem;
-      padding: 0.8rem 1rem;
-      max-height: 110px;
-      overflow-y: auto;
-      font-size: 0.7rem;
-      font-family: 'JetBrains Mono', monospace;
-      margin-top: 0.8rem;
-    }
-    .summary-metrics {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 1rem;
-      margin: 1rem 0 1.5rem;
-    }
-    .metric-card {
-      background: #fefaf2;
-      border-radius: 1.2rem;
-      padding: 1rem;
-      border: 1px solid #e8e0d2;
-      text-align: center;
-    }
-    .metric-number {
-      font-size: 2rem;
-      font-weight: 800;
-      color: #1e2f2b;
-    }
-    .metric-label {
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      color: #7e8b81;
-      letter-spacing: 0.5px;
-    }
-    .btn-download {
-      background: #008cff;
-      border: none;
-      padding: 0.9rem 1.5rem;
-      border-radius: 60px;
+      margin-top: 1.25rem;
+      font-size: 0.78rem;
       font-weight: 700;
-      color: white;
-      font-size: 0.85rem;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      transition: 0.1s;
-      margin-right: 1rem;
-    }
-    .btn-reset {
-      background: transparent;
-      border: 1px solid #bfb7a4;
-      padding: 0.9rem 1.5rem;
+      color: #1e2f2b;
+      background: #f0ede6;
+      padding: 0.45rem 1rem;
       border-radius: 60px;
-      font-weight: 500;
-      cursor: pointer;
+      transition: all 0.15s;
+      align-self: flex-start;
     }
-    .action-bar {
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      margin-top: 0.5rem;
+    .module-card.mail:hover .module-cta {
+      background: #e5b13b;
+      color: #1a1e2b;
     }
-    .footer {
-      background: #f8f5ed;
-      padding: 1rem 2rem;
-      font-size: 0.7rem;
+    .module-card.report:hover .module-cta {
+      background: #0059ff;
+      color: #fff;
+    }
+    .module-badge {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.6rem;
+      font-weight: 600;
+      padding: 0.25rem 0.6rem;
+      border-radius: 30px;
+      letter-spacing: 0.3px;
+    }
+    .badge-new { background: #e2f0e6; color: #1a6b42; }
+    .badge-active { background: #e6edf5; color: #1a4a6b; }
+
+    .portal-footer {
       text-align: center;
-      color: #7a8b7c;
-      border-top: 1px solid #e7dfcf;
+      font-size: 0.68rem;
+      color: #9ca89f;
+      font-family: 'JetBrains Mono', monospace;
+      margin-top: 1.5rem;
+      padding: 0 0.5rem;
     }
-    .toast-msg {
-      position: fixed;
-      bottom: 1.5rem;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #1e2f2b;
-      color: #fae669;
-      padding: 0.6rem 1.2rem;
-      border-radius: 60px;
-      font-size: 0.8rem;
-      font-weight: 500;
-      z-index: 1200;
-      opacity: 0;
-      transition: 0.2s;
-      pointer-events: none;
-    }
-    .toast-msg.show {
-      opacity: 1;
-    }
-    @media (max-width: 720px) {
-      body { padding: 1rem; }
-      .hero, .section { padding: 1rem 1.2rem; }
-      .run-zone { margin: 0 1rem 1.5rem 1rem; flex-direction: column; align-items: stretch; }
-      .run-note { max-width: 100%; }
-    }
-    .hidden-section {
-      display: none;
-    }
-    .blink-cursor {
-      animation: pulse 1s step-start infinite;
-    }
-    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-    .card-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: auto;
-      flex-direction: column;
+
+    @media (max-width: 600px) {
+      .portal-header, .modules-body { padding: 1.5rem 1.25rem; }
+      .modules-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-<div class="container" id="appRoot">
-  <!-- HERO area -->
-  <div class="hero">
-    <div class="hero-top">
-      <img src="https://rvsolutions.in/sites/default/files/logo-inner.png" alt="RV Solutions" class="logo">
-      <div class="status-chip">● LIVE · BROWSER ENGINE</div>
-    </div>
-    <div class="title-block">
-      <h1>WEEKLY INVENTORY <span>REPORT</span></h1>
-      <div>Upload core files – Sales, GRN & Stock. Master data preloaded. Generate weekly movement + valuation in seconds.</div>
-    </div>
-    <div style="margin-top: 1.2rem; display: flex; justify-content: flex-end;">
-      <div class="stat-badge">
-        <div class="stat-number" id="filesCounter">0</div>
-        <div class="stat-label">Data files loaded</div>
+<div class="wrap">
+  <div class="portal-header">
+    <div class="header-top">
+      <div class="logo-area">
+        <img class="logo" src="https://rvsolutions.in/sites/default/files/logo-inner.png" alt="RV Solutions"
+             onerror="this.style.display='none';document.getElementById('lt').style.display='block'">
+        <div class="logo-text" id="lt" style="display:none">RV <span>Solutions</span></div>
       </div>
+      <div class="env-chip">INVENTORY AUTOMATION PORTAL</div>
+    </div>
+    <div class="portal-title">
+      <h1>Choose a <span>Module</span></h1>
+      <p class="portal-sub">Select the automation you want to run. All processing happens in your browser - no data leaves your device unless you send emails.</p>
     </div>
   </div>
 
-  <!-- Upload Section (always visible but collapsible logic) -->
-  <div id="uploadArea">
-    <!-- Required files -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-number">01</div>
-        <div class="section-title">Core Data Files</div>
-        <div class="section-tagline">3 required to generate</div>
-      </div>
-      <div class="files-grid" id="requiredGrid"></div>
-    </div>
+  <div class="modules-body">
+    <div class="modules-label">Available modules · 2</div>
+    <div class="modules-grid">
 
-    <!-- Master files with template download buttons -->
-    <div class="section">
-      <div class="section-header">
-        <div class="section-number">02</div>
-        <div class="section-title">Master References</div>
-        <div class="section-tagline">Built‑in active • override optional • download template</div>
-      </div>
-      <div class="files-grid" id="masterGrid"></div>
-    </div>
+      <!-- Module 1: ASC Mail -->
+      <a class="module-card mail" href="/asc-mail">
+        <div class="module-badge badge-new">NEW</div>
+        <div class="module-num">MODULE 01</div>
+        <div class="module-name">Send Inventory Mail to ASCs</div>
+        <div class="module-desc">Upload the master stock file, preview per-ASC Excel attachments and email drafts, then dispatch personalised reminder mails to all ASCs with CC recipients in one click.</div>
+        <div class="module-cta">Open module →</div>
+      </a>
 
-    <!-- Run zone -->
-    <div class="run-zone">
-      <div class="run-note">Sales, GRN and Stock files are mandatory. Masters are pre‑loaded from server, but you can upload custom versions. <strong>Download a template first to see the exact format.</strong></div>
-      <button class="btn-run" id="runBtn" disabled>GENERATE REPORT</button>
+      <!-- Module 2: Weekly Report -->
+      <a class="module-card report" href="/weekly-report">
+        <div class="module-badge badge-active">ACTIVE</div>
+        <div class="module-num">MODULE 02</div>
+        <div class="module-name">Prepare Weekly Inventory Report</div>
+        <div class="module-desc">Upload Sales, GRN, Stock and Return files to generate the branded weekly inventory Excel report across all brands with week-wise in/out breakdown.</div>
+        <div class="module-cta">Open module →</div>
+      </a>
+
     </div>
   </div>
 
-  <!-- Progress section (hidden initially) -->
-  <div id="progressSection" style="display: none;">
-    <div class="progress-panel">
-      <div class="progress-header"><span>PROCESSING STREAM</span> <span class="blink-cursor">_</span></div>
-      <div class="progress-bar-bg"><div class="progress-fill" id="progressFill"></div></div>
-      <div class="steps-row" id="stepsContainer"></div>
-      <div class="log-box" id="logBox"></div>
-    </div>
-  </div>
-
-  <!-- Summary section (hidden initially) -->
-  <div id="summarySection" style="display: none;">
-    <div class="summary-panel">
-      <div class="summary-header">INVENTORY SUMMARY</div>
-      <div class="summary-metrics" id="summaryMetrics"></div>
-      <div class="action-bar">
-        <button class="btn-download" id="downloadBtn">DOWNLOAD REPORT (.xlsx)</button>
-        <button class="btn-reset" id="resetBtn">↻ START OVER</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="footer">
-    <span>Automation Engineered by Harpinder Singh</span> • <span>RV Solutions • zero server upload</span>
-  </div>
+  <div class="portal-footer">Automation Engineered by Harpinder Singh &nbsp;·&nbsp; RV Solutions &nbsp;·&nbsp; zero server upload</div>
 </div>
-<div id="globalToast" class="toast-msg"></div>
-
-<script>
-  // ---------- GLOBAL STATE ----------
-  const fileData = {};
-  const REQUIRED_KEYS = ['sales', 'grn', 'stock'];
-  const BRANDS_LIST = ['Philips','Reliance TV','Life long','AI+','pTron','Mobilla','AcWo','Pebble','Matrix','EVM','Honor','Boat','Harman','Samsung'];
-  const MONTHS = ['JANUARY','FEBRUARY','MARCH','APRIL','MAY','JUNE','JULY','AUGUST','SEPTEMBER','OCTOBER','NOVEMBER','DECEMBER'];
-
-  // masters endpoint mapping
-  const MASTER_ENDPOINTS = {
-    partcode: '/masters/partcode_master.xlsx',
-    pricelist: '/masters/pricelist_master.xlsx',
-    supplier: '/masters/supplier_mapping.xlsx'
-  };
-
-  // ======================= TEMPLATE DEFINITIONS =======================
-  // Template structures for master files (to help users understand required columns)
-  const MASTER_TEMPLATES = {
-    partcode: {
-      name: 'partcode_master_template.xlsx',
-      headers: ['Partcode', 'Brand', 'Description'],
-      sampleRows: [
-        ['PART-1001', 'Philips', 'LED Bulb 9W'],
-        ['PART-1002', 'Boat', 'Wireless Earbuds'],
-        ['PART-1003', 'Samsung', '32" Smart TV']
-      ]
-    },
-    pricelist: {
-      name: 'pricelist_master_template.xlsx',
-      headers: ['Part code', 'Brand', 'Brand Price', 'MRP'],
-      sampleRows: [
-        ['PART-1001', 'Philips', 189.50, 399],
-        ['PART-1002', 'Boat', 1299, 2499],
-        ['PART-1003', 'Samsung', 18999, 24999]
-      ]
-    },
-    supplier: {
-      name: 'supplier_mapping_template.xlsx',
-      headers: ['Supplier Name', 'Brand Name', 'Supplier Code'],
-      sampleRows: [
-        ['Philips India Ltd', 'Philips', 'SUP001'],
-        ['Boat Lifestyle', 'Boat', 'SUP002'],
-        ['Samsung Electronics', 'Samsung', 'SUP003']
-      ]
-    }
-  };
-
-  // Helper: download template excel file
-  function downloadMasterTemplate(masterKey) {
-    const template = MASTER_TEMPLATES[masterKey];
-    if (!template) return;
-    
-    // Create worksheet data: headers + sample rows
-    const sheetData = [template.headers, ...template.sampleRows];
-    const ws = XLSX.utils.aoa_to_sheet(sheetData);
-    // auto column width hint
-    ws['!cols'] = template.headers.map(() => ({wch: 18}));
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Template');
-    
-    // Export file
-    XLSX.writeFile(wb, template.name);
-    showToast(`Downloaded template: ${template.name}`, false);
-  }
-
-  let currentWorkbook = null;
-  let logs = [];
-
-  // Helper UI
-  function showToast(msg, isErr = false) {
-    const toast = document.getElementById('globalToast');
-    toast.textContent = msg;
-    toast.style.background = isErr ? '#b13a2c' : '#1e2f2b';
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 2800);
-  }
-
-  function updateFileCounter() {
-    const loadedCount = ['sales','grn','stock','return','partcode','pricelist','supplier'].filter(k => fileData[k]).length;
-    document.getElementById('filesCounter').innerHTML = loadedCount;
-  }
-
-  function checkRunEnabled() {
-    const requiredOk = REQUIRED_KEYS.every(k => fileData[k]);
-    document.getElementById('runBtn').disabled = !requiredOk;
-  }
-
-  // file reader
-  function readExcelFile(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        try {
-          const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type: 'array', cellDates: true });
-          const sheet = workbook.Sheets[workbook.SheetNames[0]];
-          const rows = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
-          resolve(rows);
-        } catch (err) { reject(err); }
-      };
-      reader.onerror = reject;
-      reader.readAsArrayBuffer(file);
-    });
-  }
-
-  async function handleFileUpload(key, inputElement) {
-    const file = inputElement.files[0];
-    if (!file) return;
-    try {
-      const rows = await readExcelFile(file);
-      fileData[key] = rows;
-      updateStatusUI(key, `${file.name} (${rows.length} rows)`, 'ok');
-      showToast(`Loaded ${file.name}`);
-      checkRunEnabled();
-      updateFileCounter();
-    } catch (err) {
-      showToast(`Error: ${err.message}`, true);
-      updateStatusUI(key, `Error: ${err.message}`, 'error');
-    }
-  }
-
-  function updateStatusUI(key, message, statusType = 'default') {
-    const statusSpan = document.getElementById(`status-${key}`);
-    if (statusSpan) {
-      statusSpan.textContent = message;
-      statusSpan.className = `file-status ${statusType === 'ok' ? 'ok' : (statusType === 'builtin' ? 'builtin-ok' : '')}`;
-    }
-    const card = document.getElementById(`card-${key}`);
-    if (card && (statusType === 'ok' || statusType === 'builtin')) card.style.borderLeft = '3px solid #2a9d6e';
-  }
-
-  async function loadBuiltinMaster(key, displayName) {
-    const spinner = document.getElementById(`spinner-${key}`);
-    if (spinner) spinner.style.display = 'flex';
-    try {
-      const res = await fetch(MASTER_ENDPOINTS[key]);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const buf = await res.arrayBuffer();
-      const wb = XLSX.read(buf, { type: 'array', cellDates: true });
-      const sheet = wb.Sheets[wb.SheetNames[0]];
-      const rows = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false });
-      fileData[key] = rows;
-      if (spinner) spinner.style.display = 'none';
-      updateStatusUI(key, `Built‑in active · ${rows.length} entries`, 'builtin');
-    } catch (e) {
-      if (spinner) spinner.style.display = 'none';
-      updateStatusUI(key, `Built‑in missing — upload manually`, 'default');
-    }
-    updateFileCounter();
-    checkRunEnabled();
-  }
-
-  // ----- helpers for processing -----
-  function cleanNum(v) { const n = parseFloat(String(v||'').replace(/[₹,]/g,'').trim()); return isNaN(n) ? 0 : n; }
-  function parseDateAny(v) { if (!v) return null; if(v instanceof Date && !isNaN(v)) return v; let d = new Date(v); if(!isNaN(d)) return d; const match = String(v).match(/(\d{1,2})[\/\-\.](\d{1,2})[\/\-\.](\d{2,4})/); if(match){ let [_,a,b,c]=match; if(c.length===2) c='20'+c; return new Date(+c,+b-1,+a); } return null; }
-  function getWeekOfMonth(d) { if(!d) return null; const day = d.getDate(); if(day<=7) return 1; if(day<=15) return 2; if(day<=23) return 3; return 4; }
-  function createMapping(rows, keyCol, valCol) { const map={}; if(!rows) return map; rows.forEach(r=>{ let k=String(r[keyCol]||'').trim(); if(k) map[k]=String(r[valCol]||'').trim(); }); return map; }
-  function addLog(msg, type='') { logs.push({msg,type}); const logDiv=document.getElementById('logBox'); if(logDiv) logDiv.innerHTML=logs.map(l=>`<div style="color:${l.type==='err'?'#c94f31':'#5b6e6b'}">${l.msg}</div>`).join(''); logDiv.scrollTop=logDiv.scrollHeight; }
-
-  // core processors
-  function processSales(rows, partMaster) {
-    const brandMap = createMapping(partMaster, 'Partcode', 'Brand');
-    addLog(`Sales: partcode mapping size ${Object.keys(brandMap).length}`);
-    let filtered = rows.filter(r => String(r['Type']||'').trim() === 'GRNR');
-    filtered = filtered.filter(r => String(r['Status']||'').trim() !== 'Received');
-    const result = {};
-    let matched=0;
-    for(let row of filtered){
-      const part = String(row['Partcode']||'').trim();
-      const brand = brandMap[part];
-      if(!brand) continue;
-      const qty = cleanNum(row['Quantity of goods sold']);
-      const rate = cleanNum(row['Rate']);
-      const value = qty * rate;
-      const invDate = parseDateAny(row['Invoice date'] || row['Invoice Date']);
-      const week = invDate ? getWeekOfMonth(invDate) : null;
-      if(!week) continue;
-      if(!result[brand]) result[brand] = {'Week 1 Out':0,'Week 2 Out':0,'Week 3 Out':0,'Week 4 Out':0};
-      result[brand][`Week ${week} Out`] += value;
-      matched++;
-    }
-    addLog(`Sales matched ${matched} rows (value)`);
-    return result;
-  }
-
-  function processGrn(rows, supplierMaster) {
-    const supMap = createMapping(supplierMaster, 'Supplier Name', 'Brand Name');
-    addLog(`GRN supplier mapping size ${Object.keys(supMap).length}`);
-    const result = {};
-    let matched=0;
-    for(let row of rows){
-      const sup = String(row['Supplier Name']||'').trim();
-      const brand = supMap[sup];
-      if(!brand) continue;
-      const cost = cleanNum(row['Cost']);
-      const invDate = parseDateAny(row['Supplier Invoice Date'] || row['Supplier Invoice date']);
-      const week = invDate ? getWeekOfMonth(invDate) : null;
-      if(!week) continue;
-      if(!result[brand]) result[brand] = {'Week 1 In':0,'Week 2 In':0,'Week 3 In':0,'Week 4 In':0};
-      result[brand][`Week ${week} In`] += cost;
-      matched++;
-    }
-    addLog(`GRN matched ${matched} rows`);
-    return result;
-  }
-
-  function processStock(rows, pricelist) {
-    const priceMap = createMapping(pricelist, 'Part code', 'Brand Price');
-    const brandMap = createMapping(pricelist, 'Part code', 'Brand');
-    const rvHoSet = new Set(['RWH - Central Werehouse']);
-    const rvEscSet = new Set(['BT- RV Solutions Pvt Ltd (Ahmedabad, GI)','BT-RV Solutions Pvt. Ltd.(Dadar,MH)','RV Solution Pvt Ltd (Ahmedabad, GJ)']);
-    const exclRegex = /Test|RWH - Central Werehouse|BT- RV Solutions|RV Solution/i;
-    const acc = {};
-    for(let row of rows){
-      const pc = String(row['Part code']||row['Partcode']||'').trim();
-      let brand = String(row['Brand']||'').trim() || brandMap[pc];
-      if(!brand || brand==='Unknown') continue;
-      const bp = cleanNum(priceMap[pc] || row['Brand Price'] || 0);
-      const fresh = cleanNum(row['Fresh']), defect = cleanNum(row['Defective']);
-      const goodVal = fresh*bp, defVal = defect*bp;
-      const loc = String(row['Location Name']||'').trim();
-      if(!acc[brand]) acc[brand] = {atRvHoGood:0,defRvHo:0,goodEsc:0,defEsc:0,goodAsc:0,defAsc:0};
-      if(rvHoSet.has(loc)) { acc[brand].atRvHoGood += goodVal; acc[brand].defRvHo += defVal; }
-      else if(rvEscSet.has(loc)) { acc[brand].goodEsc += goodVal; acc[brand].defEsc += defVal; }
-      else if(!exclRegex.test(loc)) { acc[brand].goodAsc += goodVal; acc[brand].defAsc += defVal; }
-    }
-    return acc;
-  }
-
-  function processReturn(rows, pricelist) {
-    const priceMap = createMapping(pricelist, 'Part code', 'Brand Price');
-    const retMap = {};
-    for(let row of rows){
-      const status = String(row['Status']||'').trim();
-      if(status !== 'Dispatched' && status !== 'Processed') continue;
-      const pc = String(row['Partcode']||row['Part code']||'').trim();
-      const qty = cleanNum(row['Quantity of goods Return']||row['Quantity of goods return']);
-      const brand = String(row['Brand']||'').trim();
-      if(!brand || brand==='Unknown') continue;
-      const bp = cleanNum(priceMap[pc]);
-      retMap[brand] = (retMap[brand]||0) + (qty * bp);
-    }
-    return retMap;
-  }
-
-  function buildReport(salesMap, grnMap, stockMap, retMap) {
-    const allBrandsSet = new Set([...BRANDS_LIST, ...Object.keys(salesMap), ...Object.keys(grnMap), ...Object.keys(stockMap)]);
-    const month = MONTHS[new Date().getMonth()];
-    const rows = [];
-    for(let brand of allBrandsSet){
-      const s = salesMap[brand]||{}, g = grnMap[brand]||{}, st = stockMap[brand]||{}, ret = cleanNum(retMap[brand]||0);
-      rows.push([
-        month, brand,
-        g['Week 1 In']||0, s['Week 1 Out']||0,
-        g['Week 2 In']||0, s['Week 2 Out']||0,
-        g['Week 3 In']||0, s['Week 3 Out']||0,
-        g['Week 4 In']||0, s['Week 4 Out']||0,
-        st.atRvHoGood||0, st.defRvHo||0,
-        st.goodEsc||0, st.goodAsc||0,
-        st.defEsc||0, st.defAsc||0,
-        ret,
-        (st.atRvHoGood||0)+(st.defRvHo||0)+(st.goodEsc||0)+(st.goodAsc||0)+(st.defEsc||0)+(st.defAsc||0)+ret
-      ]);
-    }
-    return rows;
-  }
-
-  async function runAutomation() {
-    logs = [];
-    document.getElementById('uploadArea').style.display = 'none';
-    document.getElementById('progressSection').style.display = 'block';
-    document.getElementById('summarySection').style.display = 'none';
-    const steps = ['Prep masters', 'Sales analysis', 'GRN analysis', 'Stock valuation', 'Return (opt)', 'Build table', 'Excel export'];
-    const stepDiv = document.getElementById('stepsContainer');
-    const fillBar = document.getElementById('progressFill');
-    function setStep(index, state, percent){
-      const stepsEls = stepDiv.querySelectorAll('.step-badge');
-      if(stepsEls[index]) { stepsEls[index].className = `step-badge ${state}`; }
-      fillBar.style.width = `${percent}%`;
-    }
-    stepDiv.innerHTML = steps.map((s,i)=>`<div class="step-badge" id="step-${i}">${s}</div>`).join('');
-    setStep(0,'active',8);
-    await delay(60);
-    const partMaster = fileData.partcode || [];
-    const priceMaster = fileData.pricelist || [];
-    const suppMaster = fileData.supplier || [];
-    setStep(0,'done',15);
-
-    setStep(1,'active',20);
-    let salesData = processSales(fileData.sales||[], partMaster);
-    setStep(1,'done',35);
-    setStep(2,'active',38);
-    let grnData = processGrn(fileData.grn||[], suppMaster);
-    setStep(2,'done',52);
-    setStep(3,'active',55);
-    let stockData = processStock(fileData.stock||[], priceMaster);
-    setStep(3,'done',68);
-    setStep(4,'active',70);
-    let returnData = (fileData.return) ? processReturn(fileData.return, priceMaster) : {};
-    setStep(4,'done',80);
-    setStep(5,'active',83);
-    const reportRows = buildReport(salesData, grnData, stockData, returnData);
-    const headers = ['Month','Brand Name','Week 1 In','Week 1 Out','Week 2 In','Week 2 Out','Week 3 In','Week 3 Out','Week 4 In','Week 4 Out','At RV HO Good','Defective at RV HO','Good Stock at RV ESC','Good Inv at ASC','Defective Stock at RV ESC','Defective Inv at ASC','In Tran. from ASC','Total Inv'];
-    const sheetData = [headers, ...reportRows.map(r => r.map(v => v===0?'':v))];
-    setStep(5,'done',92);
-    setStep(6,'active',94);
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(sheetData);
-    ws['!cols'] = headers.map(() => ({wch: 14}));
-    XLSX.utils.book_append_sheet(wb, ws, 'Inventory Report');
-    currentWorkbook = wb;
-    setStep(6,'done',100);
-    await delay(200);
-    const totalIn = reportRows.reduce((s,r)=> s + cleanNum(r[2])+cleanNum(r[4])+cleanNum(r[6])+cleanNum(r[8]),0);
-    const totalOut = reportRows.reduce((s,r)=> s + cleanNum(r[3])+cleanNum(r[5])+cleanNum(r[7])+cleanNum(r[9]),0);
-    const totalInv = reportRows.reduce((s,r)=> s + cleanNum(r[17]),0);
-    const activeBrands = reportRows.filter(r => r.slice(2,10).some(v => v!==0 && v!=='')).length;
-    const formatVal = v => v>=1e7?(v/1e7).toFixed(1)+'Cr': v>=1e5?(v/1e5).toFixed(1)+'L': v.toLocaleString();
-    document.getElementById('summaryMetrics').innerHTML = `
-      <div class="metric-card"><div class="metric-number">${activeBrands}</div><div class="metric-label">Active brands</div></div>
-      <div class="metric-card"><div class="metric-number">${formatVal(totalIn)}</div><div class="metric-label">Total inward</div></div>
-      <div class="metric-card"><div class="metric-number">${formatVal(totalOut)}</div><div class="metric-label">Total outward</div></div>
-      <div class="metric-card"><div class="metric-number">${formatVal(totalInv)}</div><div class="metric-label">Total inventory value</div></div>
-    `;
-    document.getElementById('progressSection').style.display = 'none';
-    document.getElementById('summarySection').style.display = 'block';
-    showToast('Report ready — download now');
-  }
-
-  function delay(ms) { return new Promise(r=>setTimeout(r,ms)); }
-
-  // UI Builders with template download buttons
-  function buildFileCards() {
-    const requiredConf = [
-      {key:'sales', label:'Sales Report', desc:'GRNR invoices filtered by Type & Status. Fills week-wise Out columns.', optional:false},
-      {key:'grn', label:'GRN Details', desc:'Goods receipt notes by supplier. Fills week-wise In per brand.', optional:false},
-      {key:'stock', label:'Stock Details', desc:'Current stock by location. Good/Defective inventory columns.', optional:false},
-      {key:'return', label:'Sales Return Report', desc:'Returns with Dispatched/Processed status. In Transit column.', optional:true}
-    ];
-    const masterConf = [
-      {key:'partcode', label:'Partcode Master', desc:'Partcode → Brand mapping', endpoint:true},
-      {key:'pricelist', label:'Pricelist Master', desc:'Part code → Brand Price & Brand', endpoint:true},
-      {key:'supplier', label:'Supplier Mapping', desc:'Supplier → Brand Name', endpoint:true}
-    ];
-    const requiredGrid = document.getElementById('requiredGrid');
-    requiredGrid.innerHTML = requiredConf.map(c => `
-      <div class="file-card" id="card-${c.key}">
-        <div class="card-title">${c.label} ${c.optional?'(optional)':'*'}</div>
-        <div class="card-desc">${c.desc}</div>
-        <div class="file-status" id="status-${c.key}">${c.optional?'No file — optional':'No file — upload required'}</div>
-        <button class="btn-upload" onclick="document.getElementById('input-${c.key}').click()">📂 Upload .xlsx / .csv</button>
-        <input type="file" id="input-${c.key}" class="file-input-hidden" style="display:none" accept=".xlsx,.xls,.csv" onchange="handleFileUpload('${c.key}',this)">
-      </div>
-    `).join('');
-    const masterGrid = document.getElementById('masterGrid');
-    masterGrid.innerHTML = masterConf.map(c => `
-      <div class="file-card" id="card-${c.key}">
-        <div class="card-title">${c.label}</div>
-        <div class="card-desc">${c.desc}</div>
-        <div class="file-status" id="status-${c.key}">Loading built‑in...</div>
-        <div class="master-loading" id="spinner-${c.key}" style="display:flex"><div class="spinner"></div> fetching</div>
-        <div class="card-actions">
-          <button class="btn-download-template" data-master-key="${c.key}">Download Template (XLSX)</button>
-          <button class="btn-upload override" onclick="document.getElementById('input-${c.key}').click()">⬆ Override built‑in</button>
-          <input type="file" id="input-${c.key}" style="display:none" accept=".xlsx,.xls,.csv" onchange="handleFileUpload('${c.key}',this)">
-        </div>
-      </div>
-    `).join('');
-    // Attach template download listeners
-    document.querySelectorAll('.btn-download-template').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const masterKey = btn.getAttribute('data-master-key');
-        if (masterKey && MASTER_TEMPLATES[masterKey]) {
-          downloadMasterTemplate(masterKey);
-        } else {
-          showToast('Template not available', true);
-        }
-      });
-    });
-    masterConf.forEach(c => loadBuiltinMaster(c.key, c.label));
-  }
-
-  window.handleFileUpload = handleFileUpload;
-  document.getElementById('runBtn').addEventListener('click', runAutomation);
-  document.getElementById('downloadBtn').addEventListener('click', ()=>{
-    if(currentWorkbook){
-      const today = new Date().toISOString().slice(0,10).replace(/-/g,'');
-      XLSX.writeFile(currentWorkbook, `Inventory_Report_${today}.xlsx`);
-      showToast('Download started');
-    } else showToast('No report generated yet', true);
-  });
-  document.getElementById('resetBtn').addEventListener('click', ()=>{
-    location.reload();
-  });
-  buildFileCards();
-</script>
 </body>
 </html>

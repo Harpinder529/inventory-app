@@ -1,0 +1,74 @@
+# OS generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs & runtime files
+*.log
+*.pid
+*.seed
+*.pid.lock
+*.out
+*.err
+*.stackdump
+*.pdf
+
+# Dependency directories
+node_modules/
+vendor/
+.env
+
+# Build output
+dist/
+build/
+out/
+target/
+*.class
+*.jar
+*.war
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+env/
+ENV/
+
+# JavaScript / TypeScript
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.next/
+.nuxt/
+.cache/
+coverage/
+
+# IDE / Editor files
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+*.swo
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Misc
+*.tmp
+*.temp
+.cache/

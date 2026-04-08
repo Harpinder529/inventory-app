@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Login | RV Solutions</title>
+  <link rel="icon" type="image/png" href="/public/logo.png">
+  <link rel="apple-touch-icon" href="/public/logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #fefaf0;
+      font-family: 'Inter', sans-serif;
+      color: #1a1e2b;
+      line-height: 1.4;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1.5rem;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 460px;
+      background: #ffffff;
+      border-radius: 2rem;
+      box-shadow: 0 20px 40px -12px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.02);
+      overflow: hidden;
+    }
+
+    .hero {
+      padding: 2rem 2.5rem 1.8rem;
+      background: #ffffff;
+      border-bottom: 1px solid #e9e6df;
+    }
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .logo { height: 38px; opacity: 0.9; }
+
+    .logo-text {
+      font-weight: 800;
+      font-size: 1.1rem;
+      letter-spacing: -0.5px;
+      color: #070707;
+    }
+    .logo-text span { color: #0059ff; }
+
+    .status-chip {
+      background: #f0f2f5;
+      border-radius: 60px;
+      padding: 0.45rem 1rem;
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.3px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #2c3e4e;
+    }
+    .title-block h1 {
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #070707;
+      margin-bottom: 0.4rem;
+    }
+    .title-block h1 span { color: #0059ff; }
+    .subhead {
+      font-size: 0.85rem;
+      color: #5b6e6b;
+      border-left: 3px solid #e2b74b;
+      padding-left: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .form-body {
+      padding: 2rem 2.5rem 2.4rem;
+    }
+
+    .field-group {
+      margin-bottom: 1.25rem;
+    }
+    .field-label {
+      display: block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #3e4d44;
+      margin-bottom: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .field-wrap {
+      position: relative;
+    }
+    .field-wrap input {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid #e2ddd4;
+      border-radius: 0.85rem;
+      font-size: 0.9rem;
+      font-family: 'Inter', sans-serif;
+      color: #1a1e2b;
+      background: #fefcf8;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .field-wrap input:focus {
+      border-color: #0059ff;
+      box-shadow: 0 0 0 3px rgba(0,89,255,0.08);
+      background: #fff;
+    }
+    .field-wrap input::placeholder { color: #b0a99a; }
+
+    .toggle-pw {
+      position: absolute;
+      right: 0.9rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #8c9a91;
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 0.2rem 0.4rem;
+      transition: color 0.15s;
+    }
+    .toggle-pw:hover { color: #1e2f2b; }
+
+    .error-banner {
+      display: none;
+      background: #fff0f0;
+      border-left: 3px solid #e05252;
+      border-radius: 0.7rem;
+      padding: 0.6rem 1rem;
+      font-size: 0.78rem;
+      color: #b03232;
+      margin-bottom: 1.2rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .error-banner.visible { display: block; }
+
+    .btn-login {
+      width: 100%;
+      background: #e5b13b;
+      border: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 0.85rem 1.8rem;
+      border-radius: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      color: #1a1e2b;
+      transition: background 0.15s, transform 0.1s;
+      margin-top: 0.5rem;
+    }
+    .btn-login:hover { background: #0059ff; color: #fff; }
+    .btn-login:active { transform: scale(0.98); }
+    .btn-login:disabled {
+      opacity: 0.45;
+      background: #cdc6b8;
+      cursor: not-allowed;
+    }
+
+    .btn-spinner {
+      display: none;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    .btn-login.loading .btn-spinner { display: block; }
+    .btn-login.loading .btn-label { opacity: 0.6; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .form-note {
+      margin-top: 1.4rem;
+      font-size: 0.7rem;
+      color: #8c9a91;
+      text-align: center;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .section-number {
+      background: #1e2f2b;
+      color: #fae669;
+      font-weight: 700;
+      font-size: 0.75rem;
+      padding: 0.18rem 0.7rem;
+      border-radius: 30px;
+      font-family: 'JetBrains Mono', monospace;
+      display: inline-block;
+      margin-bottom: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- Header -->
+  <div class="hero">
+    <div class="hero-top">
+      <img class="logo" src="https://rvsolutions.in/sites/default/files/logo-inner.png" alt="RV Solutions"
+           onerror="this.style.display='none'; document.getElementById('logoText').style.display='block'">
+      <div class="logo-text" id="logoText" style="display:none">RV <span>Solutions</span></div>
+      <div class="status-chip">AUTH REQUIRED</div>
+    </div>
+    <div class="title-block">
+      <h1>Inventory <span>Portal</span></h1>
+      <p>Sign in with your credentials to access the weekly report automation.</p>
+    </div>
+  </div>
+
+  <!-- Form -->
+  <div class="form-body">
+    <div class="section-number">01 · SIGN IN</div>
+
+    <div class="error-banner" id="errorBanner">Incorrect username or password.</div>
+
+    <div class="field-group">
+      <label class="field-label" for="username">Username</label>
+      <div class="field-wrap">
+        <input type="text" id="username" placeholder="your username" autocomplete="username" autofocus>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label" for="password">Password</label>
+      <div class="field-wrap">
+        <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+        <button class="toggle-pw" type="button" id="togglePw" aria-label="Show password">show</button>
+      </div>
+    </div>
+
+    <button class="btn-login" id="loginBtn" type="button">
+      <div class="btn-spinner"></div>
+      <span class="btn-label">Sign In</span>
+    </button>
+
+    <p class="form-note">Access is restricted to authorised RV Solutions personnel.</p>
+  </div>
+</div>
+
+<script>
+  // Toggle password visibility
+  const pwInput = document.getElementById('password');
+  const toggleBtn = document.getElementById('togglePw');
+  toggleBtn.addEventListener('click', () => {
+    const show = pwInput.type === 'password';
+    pwInput.type = show ? 'text' : 'password';
+    toggleBtn.textContent = show ? 'hide' : 'show';
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('loginBtn').click();
+  });
+
+  document.getElementById('loginBtn').addEventListener('click', async () => {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const btn = document.getElementById('loginBtn');
+    const banner = document.getElementById('errorBanner');
+
+    banner.classList.remove('visible');
+
+    if (!username || !password) {
+      banner.textContent = '⚠ Please enter both username and password.';
+      banner.classList.add('visible');
+      return;
+    }
+
+    btn.disabled = true;
+    btn.classList.add('loading');
+
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (res.ok) {
+        // Redirect to the main app on success
+        window.location.href = '/';
+      } else {
+        banner.textContent = '⚠ Incorrect username or password.';
+        banner.classList.add('visible');
+        document.getElementById('password').value = '';
+      }
+    } catch (err) {
+      banner.textContent = '⚠ Network error — please try again.';
+      banner.classList.add('visible');
+    }
+
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  });
+</script>
+</body>
+</html>
