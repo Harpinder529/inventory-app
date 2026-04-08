@@ -739,7 +739,7 @@ async function handleStockFile(file) {
     }
     masterWb = wb;
     document.getElementById('fileLoadedBanner').textContent =
-      `✓ Loaded: ${file.name}  ·  Sheets: ${wb.SheetNames.join(', ')}`;
+      `Loaded: ${file.name}  ·  Sheets: ${wb.SheetNames.join(', ')}`;
     document.getElementById('fileLoadedBanner').classList.add('visible');
     checkProcessEnabled();
     showToast(`Loaded ${file.name}`);
@@ -1037,7 +1037,7 @@ document.getElementById('sendAllBtn').addEventListener('click', async () => {
   }
 
   btn.classList.remove('loading');
-  document.getElementById('sendAllLabel').textContent = '📬 Send All Mails';
+  document.getElementById('sendAllLabel').textContent = 'Send All Mails';
   btn.disabled = false;
   isSending = false;
 
