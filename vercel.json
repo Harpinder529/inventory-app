@@ -8,9 +8,9 @@
     { "src": "/api/auth",          "dest": "/api/auth.js" },
     { "src": "/api/send-asc-mail", "dest": "/api/send-asc-mail.js" },
     { "src": "/login",             "dest": "/public/login.html" },
-    { "src": "/asc-mail",          "dest": "/public/asc-mail.html" },
-    { "src": "/weekly-report",     "dest": "/public/weekly-report.html" },
-    { "src": "/",                  "dest": "/public/index.html" },
+    { "src": "/",                  "dest": "/api/protect.js" },
+    { "src": "/asc-mail",          "dest": "/api/protect.js" },
+    { "src": "/weekly-report",     "dest": "/api/protect.js" },
     { "src": "/(.*)",              "dest": "/public/$1" }
   ]
 }

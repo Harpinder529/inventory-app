@@ -3,7 +3,7 @@ import nodemailer from 'nodemailer';
 export default async function handler(req, res) {
   // ── Auth gate — must have a valid session cookie ──────────────────────────
   const cookie = req.headers.cookie || '';
-  if (!cookie.includes('rv_session=1')) {
+  if (!cookie.includes('rv_session=authenticated')) {
     return res.status(401).json({ error: 'Unauthorised — please log in' });
   }
 
