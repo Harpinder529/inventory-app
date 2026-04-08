@@ -438,6 +438,34 @@
       border-top:1px solid #e7dfcf;
     }
 
+    .automated-footer {
+      margin-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px dashed #d6cdb5;
+      font-size: 0.7rem;
+      font-family: 'JetBrains Mono', monospace;
+      color: #8c9a91;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .automated-footer .auto-icon {
+      font-size: 0.8rem;
+    }
+
+    .automated-footer .auto-text {
+      letter-spacing: 0.3px;
+    }
+
+    .automated-footer .auto-highlight {
+      color: #e5b13b;
+      font-weight: 600;
+    }
+
     @media (max-width:720px) {
       body { padding:1rem; }
       .hero, .section, .preview-section, .process-zone, .send-all-bar { padding-left:1.25rem; padding-right:1.25rem; }
@@ -927,20 +955,26 @@ function previewMail(idx) {
     <style>
       body{font-family:Arial,sans-serif;padding:2rem;background:#fefaf0;color:#1a1e2b;font-size:14px;line-height:1.65}
       .header{background:#1e2f2b;color:#fae669;padding:0.6rem 1.2rem;border-radius:8px;margin-bottom:1.5rem;font-size:13px}
-      pre{white-space:pre-wrap;word-break:break-word;background:#fff;padding:1.5rem;border-radius:10px;border:1px solid #e9e6df}
+      pre{white-space:pre-wrap;word-break:break-word;background:#fff;padding:1.5rem;border-radius:10px;border:1px solid #e9e6df;margin:0}
+      .auto-footer{background:#f4f2ec;padding:0.8rem 1.2rem;border-radius:8px;margin-top:1rem;font-size:11px;color:#6b7c70;text-align:center;border-left:3px solid #e5b13b}
+      .auto-icon{font-size:13px}
     </style>
     </head><body>
     <div class="header">
       <strong>To:</strong> ${asc.toEmail} &nbsp;|&nbsp;
       <strong>CC:</strong> ${asc.ccEmails.join(', ')||'—'} &nbsp;|&nbsp;
-      <strong>Subject:</strong> Urgent: Dispatch of Pending Stock to RV Warehouse | ${asc.ascName} | &nbsp;|&nbsp;
+      <strong>Subject:</strong> Urgent: Dispatch of Pending Stock to RV Warehouse | ${asc.ascName} &nbsp;|&nbsp;
       <strong>Attachment:</strong> ${asc.attachName}
     </div>
     <pre>${body}</pre>
+    <div class="auto-footer">
+      This is an automated system-generated email · Please do not reply directly to this message
+    </div>
   </body></html>`);
 }
 
 function buildMailBody(asc) {
+  const currentYear = new Date().getFullYear();
   return `Dear ${asc.ascName},
 
 We hope you are doing well.
@@ -955,7 +989,12 @@ Please feel free to reach out to our warehouse team in case of any concerns or c
 
 Thanks,
 Central Warehouse Team
-RV Solutions`;
+RV Solutions
+
+---
+This is an automated system-generated mail. Please do not reply to this message.
+For any queries, please contact your designated RV Solutions representative.
+This communication is confidential and intended solely for the named recipient(s).`;
 }
 
 //  SKIP / SEND SINGLE
