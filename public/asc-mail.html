@@ -785,7 +785,14 @@ function processFile() {
     // Build per-ASC workbook (as base64)
     const ascWb = XLSX.utils.book_new();
     // Summary sheet — single row for this ASC
-    const sumWs = XLSX.utils.json_to_sheet([row]);
+    const EXCLUDE_COLS = new Set([
+      'ASM', 'ASC Mail ID', 'CC Mail ID 1', 'CC Mail ID 2',
+      'CC Mail ID 3', 'CC Mail ID 4', 'CC Mail ID 5', 'ASM Mail ID'
+    ]);
+    const cleanRow = Object.fromEntries(
+      Object.entries(row).filter(([k]) => !EXCLUDE_COLS.has(k))
+    );
+    const sumWs = XLSX.utils.json_to_sheet([cleanRow]);
     XLSX.utils.book_append_sheet(ascWb, sumWs, 'Summary');
     // Stock_Raw Data
     const stockWs = ascStockRows.length
@@ -926,7 +933,7 @@ function previewMail(idx) {
     <div class="header">
       <strong>To:</strong> ${asc.toEmail} &nbsp;|&nbsp;
       <strong>CC:</strong> ${asc.ccEmails.join(', ')||'—'} &nbsp;|&nbsp;
-      <strong>Subject:</strong> Inventory Reminder — ${asc.ascName} &nbsp;|&nbsp;
+      <strong>Subject:</strong> Urgent: Dispatch of Pending Stock to RV Warehouse | ${asc.ascName} | &nbsp;|&nbsp;
       <strong>Attachment:</strong> ${asc.attachName}
     </div>
     <pre>${body}</pre>
@@ -1016,7 +1023,7 @@ async function dispatchMail(asc) {
     smtp,
     to:      asc.toEmail,
     cc:      asc.ccEmails,
-    subject: `Inventory Reminder — ${asc.ascName} | Dispatch by ${asc.deadlineDate}`,
+    subject: `Urgent: Dispatch of Pending Stock to RV Warehouse | ${asc.ascName} |`,
     body:    buildMailBody(asc),
     attachName:   asc.attachName,
     attachBase64: asc.attachBase64
