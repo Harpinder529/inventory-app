@@ -729,7 +729,7 @@ fileInput.addEventListener('change', () => {
 async function handleStockFile(file) {
   try {
     const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, { type:'array', cellDates:true });
+    const wb = XLSX.read(buf, { type:'array', cellDates:true, cellStyles:true });
     // Validate sheets
     const required = ['Summary','Stock_Raw Data','STN_Raw Data'];
     const missing = required.filter(s => !wb.SheetNames.includes(s));
@@ -810,37 +810,140 @@ function processFile() {
       String(r['Name of Receipient']||'').trim() === ascName
     );
 
-    // Build per-ASC workbook (as base64)
+    // Build per-ASC workbook (as base64) — preserving cell styles from master
     const ascWb = XLSX.utils.book_new();
-    // Summary sheet — single row for this ASC
+
+    // Helper: deep-copy a worksheet object (preserves cell styles, merges, col widths)
+    function copySheet(ws) {
+      if (!ws) return XLSX.utils.aoa_to_sheet([[]]);
+      const out = {};
+      Object.keys(ws).forEach(k => {
+        if (k === '!data') return; // skip dense array mirror
+        const v = ws[k];
+        if (k.startsWith('!')) { out[k] = JSON.parse(JSON.stringify(v)); }
+        else { out[k] = Object.assign({}, v); } // shallow cell copy keeps style refs
+      });
+      return out;
+    }
+
+    // Helper: filter a styled sheet to keep only rows whose col-A value is in a Set
+    // (used for Stock_Raw Data / STN_Raw Data — we rebuild row-by-row from the master sheet)
+    function filterStyledSheet(masterWs, matchSet, keyColLetter) {
+      if (!masterWs) return XLSX.utils.aoa_to_sheet([[]]);
+      const ref = masterWs['!ref'];
+      if (!ref) return XLSX.utils.aoa_to_sheet([[]]);
+      const range = XLSX.utils.decode_range(ref);
+      const out = {};
+      let destRow = 0;
+
+      // First pass: collect header row (row 0) and matching data rows
+      const rowsToCopy = [0]; // always keep header
+      for (let R = range.s.r + 1; R <= range.e.r; R++) {
+        const keyCell = masterWs[XLSX.utils.encode_cell({ r: R, c: keyColLetter })];
+        const val = keyCell ? String(keyCell.v || '').trim() : '';
+        if (matchSet.has(val)) rowsToCopy.push(R);
+      }
+
+      rowsToCopy.forEach(srcRow => {
+        for (let C = range.s.c; C <= range.e.c; C++) {
+          const srcAddr = XLSX.utils.encode_cell({ r: srcRow, c: C });
+          const destAddr = XLSX.utils.encode_cell({ r: destRow, c: C });
+          if (masterWs[srcAddr]) out[destAddr] = Object.assign({}, masterWs[srcAddr]);
+        }
+        destRow++;
+      });
+
+      if (destRow === 0) return XLSX.utils.aoa_to_sheet([[]]);
+      out['!ref'] = XLSX.utils.encode_range({ s:{ r:0, c:range.s.c }, e:{ r:destRow-1, c:range.e.c } });
+      if (masterWs['!cols']) out['!cols'] = JSON.parse(JSON.stringify(masterWs['!cols']));
+      if (masterWs['!rows']) out['!rows'] = JSON.parse(JSON.stringify(masterWs['!rows']));
+      return out;
+    }
+
+    // --- Summary sheet: copy the full master Summary sheet, then blank out excluded cols ---
     const EXCLUDE_COLS = new Set([
       'ASM', 'ASC Mail ID', 'CC Mail ID 1', 'CC Mail ID 2',
       'CC Mail ID 3', 'CC Mail ID 4', 'CC Mail ID 5', 'ASM Mail ID'
     ]);
-    const cleanRow = Object.fromEntries(
-      Object.entries(row).filter(([k]) => !EXCLUDE_COLS.has(k))
-    );
-    const sumWs = XLSX.utils.json_to_sheet([cleanRow]);
-    XLSX.utils.book_append_sheet(ascWb, sumWs, 'Summary');
-    // Stock_Raw Data
-    const stockWs = ascStockRows.length
-      ? XLSX.utils.json_to_sheet(ascStockRows)
-      : XLSX.utils.aoa_to_sheet([Object.keys(stockRows[0]||{})]);
-    XLSX.utils.book_append_sheet(ascWb, stockWs, 'Stock_Raw Data');
-    // STN_Raw Data
-    const stnWs = ascStnRows.length
-      ? XLSX.utils.json_to_sheet(ascStnRows)
-      : XLSX.utils.aoa_to_sheet([Object.keys(stnRows[0]||{})]);
-    XLSX.utils.book_append_sheet(ascWb, stnWs, 'STN_Raw Data');
+    const masterSumWs = masterWb.Sheets['Summary'];
+    const masterSumRows = XLSX.utils.sheet_to_json(masterSumWs, { header:1, defval:'' });
+    const headerRow = masterSumRows[0] || [];
+    // Find the row index in the sheet that matches this ASC
+    const sumRange = XLSX.utils.decode_range(masterSumWs['!ref'] || 'A1');
+    // Build a mini sheet: header row + this ASC's row, preserving styles
+    const ascRowIdx = summaryRows.indexOf(row); // 0-based among data rows
+    const ascSheetRow = ascRowIdx + 1 + sumRange.s.r; // +1 for header, offset by sheet start
+
+    const sumOut = {};
+    // Copy header row
+    for (let C = sumRange.s.c; C <= sumRange.e.c; C++) {
+      const srcA = XLSX.utils.encode_cell({ r: sumRange.s.r, c: C });
+      const dstA = XLSX.utils.encode_cell({ r: 0, c: C - sumRange.s.c });
+      if (masterSumWs[srcA]) sumOut[dstA] = Object.assign({}, masterSumWs[srcA]);
+    }
+    // Copy this ASC's data row
+    for (let C = sumRange.s.c; C <= sumRange.e.c; C++) {
+      const colName = headerRow[C - sumRange.s.c];
+      const srcA = XLSX.utils.encode_cell({ r: ascSheetRow, c: C });
+      const dstA = XLSX.utils.encode_cell({ r: 1, c: C - sumRange.s.c });
+      if (EXCLUDE_COLS.has(colName)) {
+        // Keep style but blank value
+        if (masterSumWs[srcA]) {
+          const cell = Object.assign({}, masterSumWs[srcA]);
+          cell.v = ''; cell.w = ''; cell.t = 's';
+          sumOut[dstA] = cell;
+        }
+      } else {
+        if (masterSumWs[srcA]) sumOut[dstA] = Object.assign({}, masterSumWs[srcA]);
+      }
+    }
+    sumOut['!ref'] = XLSX.utils.encode_range({ s:{r:0,c:0}, e:{r:1, c:sumRange.e.c - sumRange.s.c} });
+    if (masterSumWs['!cols']) sumOut['!cols'] = JSON.parse(JSON.stringify(masterSumWs['!cols']));
+    if (masterSumWs['!rows']) sumOut['!rows'] = JSON.parse(JSON.stringify(masterSumWs['!rows']));
+    XLSX.utils.book_append_sheet(ascWb, sumOut, 'Summary');
+
+    // --- Stock_Raw Data: filter master sheet rows for this ASC ---
+    const masterStockWs = masterWb.Sheets['Stock_Raw Data'];
+    const stockHeaderRow = XLSX.utils.sheet_to_json(masterStockWs, { header:1, defval:'' })[0] || [];
+    const stockKeyCol = stockHeaderRow.findIndex(h =>
+      String(h).trim() === 'Location Name' || String(h).trim() === 'ASC Code');
+    const stockMatchSet = new Set([ascName]);
+    const filteredStockWs = filterStyledSheet(masterStockWs, stockMatchSet, stockKeyCol < 0 ? 0 : stockKeyCol);
+    XLSX.utils.book_append_sheet(ascWb, filteredStockWs, 'Stock_Raw Data');
+
+    // --- STN_Raw Data: filter master sheet rows for this ASC ---
+    const masterStnWs = masterWb.Sheets['STN_Raw Data'];
+    const stnHeaderRow = XLSX.utils.sheet_to_json(masterStnWs, { header:1, defval:'' })[0] || [];
+    const stnKeyCol = stnHeaderRow.findIndex(h => String(h).trim() === 'Name of Receipient');
+    const stnMatchSet = new Set([ascName]);
+    const filteredStnWs = filterStyledSheet(masterStnWs, stnMatchSet, stnKeyCol < 0 ? 0 : stnKeyCol);
+    XLSX.utils.book_append_sheet(ascWb, filteredStnWs, 'STN_Raw Data');
 
     // Filename: ASCName_InventoryAsOn_09-Apr-2026.xlsx  (sanitise name)
     const safeName = ascName.replace(/[/\\:*?"<>|]/g,'_');
     const attachName = `${safeName}_InventoryAsOn_${fmtDate(mailDate)}.xlsx`;
 
     // Base64 of workbook
-    const wbBin = XLSX.write(ascWb, { bookType:'xlsx', type:'base64' });
+    const wbBin = XLSX.write(ascWb, { bookType:'xlsx', type:'base64', cellStyles:true });
 
-    // Zero-stock flag
+    // Build summary table HTML for mail body
+    const TABLE_EXCLUDE = new Set([
+      'ASM', 'ASC Mail ID', 'CC Mail ID 1', 'CC Mail ID 2',
+      'CC Mail ID 3', 'CC Mail ID 4', 'CC Mail ID 5', 'ASM Mail ID'
+    ]);
+    const summaryTableRows = Object.entries(row)
+      .filter(([k]) => !TABLE_EXCLUDE.has(k) && k !== '__rowNum__')
+      .map(([k, v]) => {
+        const val = (v === null || v === undefined || v === '') ? '—' : v;
+        return `<tr><td style="padding:6px 12px;border:1px solid #d6cdb5;font-weight:600;background:#f4f2ec;color:#3e4d44;font-size:13px;white-space:nowrap">${k}</td><td style="padding:6px 12px;border:1px solid #d6cdb5;color:#1a1e2b;font-size:13px">${val}</td></tr>`;
+      }).join('');
+    const summaryTableHtml = `
+<table cellspacing="0" cellpadding="0" style="border-collapse:collapse;margin:16px 0;font-family:Arial,sans-serif;min-width:340px;max-width:520px">
+  <thead>
+    <tr><th colspan="2" style="padding:8px 12px;background:#1e2f2b;color:#fae669;font-size:13px;text-align:left;border:1px solid #1e2f2b;letter-spacing:0.3px">📦 Stock Summary — ${ascName}</th></tr>
+  </thead>
+  <tbody>${summaryTableRows}</tbody>
+</table>`;
     const isZeroStock = (stkQty === 0 && stnQty === 0);
 
     ascList.push({
@@ -854,6 +957,7 @@ function processFile() {
       goodQty, defQty, stkQty, stnQty, totalVal,
       mailDate: fmtDate(mailDate),
       deadlineDate: fmtDate(deadlineDate),
+      summaryTableHtml,
       isZeroStock,
       status: isZeroStock ? 'warn' : 'ready',  // warn = needs user decision
       skipped: false
@@ -947,17 +1051,15 @@ function refreshRow(idx) {
 //  PREVIEW MAIL BODY (modal-lite)
 function previewMail(idx) {
   const asc = ascList[idx];
-  const body = buildMailBody(asc);
-  const win = window.open('','_blank','width=700,height=600,scrollbars=yes');
+  const htmlBody = buildMailBodyHtml(asc);
+  const win = window.open('','_blank','width=720,height=680,scrollbars=yes');
   win.document.write(`<!DOCTYPE html><html><head>
     <meta charset="UTF-8">
     <title>Mail Preview — ${asc.ascName}</title>
     <style>
-      body{font-family:Arial,sans-serif;padding:2rem;background:#fefaf0;color:#1a1e2b;font-size:14px;line-height:1.65}
+      body{font-family:Arial,sans-serif;padding:2rem;background:#fefaf0;color:#1a1e2b;font-size:14px;line-height:1.65;margin:0}
       .header{background:#1e2f2b;color:#fae669;padding:0.6rem 1.2rem;border-radius:8px;margin-bottom:1.5rem;font-size:13px}
-      pre{white-space:pre-wrap;word-break:break-word;background:#fff;padding:1.5rem;border-radius:10px;border:1px solid #e9e6df;margin:0}
-      .auto-footer{background:#f4f2ec;padding:0.8rem 1.2rem;border-radius:8px;margin-top:1rem;font-size:11px;color:#6b7c70;text-align:center;border-left:3px solid #e5b13b}
-      .auto-icon{font-size:13px}
+      .mail-body{background:#fff;padding:1.5rem 2rem;border-radius:10px;border:1px solid #e9e6df}
     </style>
     </head><body>
     <div class="header">
@@ -966,15 +1068,11 @@ function previewMail(idx) {
       <strong>Subject:</strong> Urgent: Dispatch of Pending Stock to RV Warehouse | ${asc.ascName} &nbsp;|&nbsp;
       <strong>Attachment:</strong> ${asc.attachName}
     </div>
-    <pre>${body}</pre>
-    <div class="auto-footer">
-      This is an automated system-generated email · Please do not reply directly to this message
-    </div>
+    <div class="mail-body">${htmlBody}</div>
   </body></html>`);
 }
 
-function buildMailBody(asc) {
-  const currentYear = new Date().getFullYear();
+function buildMailBodyText(asc) {
   return `Dear ${asc.ascName},
 
 We hope you are doing well.
@@ -995,6 +1093,35 @@ RV Solutions
 This is an automated system-generated mail. Please do not reply to this message.
 For any queries, please contact your designated RV Solutions representative.
 This communication is confidential and intended solely for the named recipient(s).`;
+}
+
+function buildMailBodyHtml(asc) {
+  const p = (t) => `<p style="margin:0 0 14px 0;font-family:Arial,sans-serif;font-size:14px;color:#1a1e2b;line-height:1.65">${t}</p>`;
+  return `
+<div style="font-family:Arial,sans-serif;font-size:14px;color:#1a1e2b;max-width:680px">
+  ${p(`Dear <strong>${asc.ascName}</strong>,`)}
+  ${p('We hope you are doing well.')}
+  ${p(`This is a gentle reminder to review your available stock (as per attached sheet) and arrange the dispatch of all pending items to the RV Warehouse by <strong>${asc.mailDate}</strong>. We kindly request that all materials are sent in complete and good condition to avoid any issues upon receipt.`)}
+  ${p(`In case we do not receive the complete stock by <strong>${asc.deadlineDate}</strong>, or if it is received incomplete or not in proper condition, we may have to assume that the stock has not been dispatched. Accordingly, such pending stock may be treated as penalty accepted at your end, and further billing may be processed for the same.`)}
+  ${p('We truly appreciate your cooperation and support in ensuring the timely and smooth handling of this matter.')}
+
+  ${asc.summaryTableHtml || ''}
+
+  ${p('Please feel free to reach out to our warehouse team in case of any concerns or clarifications.')}
+  <p style="margin:16px 0 4px 0;font-family:Arial,sans-serif;font-size:14px;color:#1a1e2b">Thanks,</p>
+  <p style="margin:0 0 4px 0;font-family:Arial,sans-serif;font-size:14px;color:#1a1e2b"><strong>Central Warehouse Team</strong></p>
+  <p style="margin:0 0 20px 0;font-family:Arial,sans-serif;font-size:14px;color:#1a1e2b">RV Solutions</p>
+  <div style="margin-top:20px;padding:10px 14px;background:#f4f2ec;border-left:3px solid #e5b13b;border-radius:4px;font-size:11px;color:#6b7c70;font-family:Arial,sans-serif">
+    🤖 This is an automated system-generated mail. Please do not reply to this message.<br>
+    For any queries, please contact your designated RV Solutions representative.<br>
+    This communication is confidential and intended solely for the named recipient(s).
+  </div>
+</div>`;
+}
+
+// Keep for preview modal (renders plain-text version)
+function buildMailBody(asc) {
+  return buildMailBodyText(asc);
 }
 
 //  SKIP / SEND SINGLE
@@ -1063,7 +1190,8 @@ async function dispatchMail(asc) {
     to:      asc.toEmail,
     cc:      asc.ccEmails,
     subject: `Urgent: Dispatch of Pending Stock to RV Warehouse | ${asc.ascName} |`,
-    body:    buildMailBody(asc),
+    body:    buildMailBodyText(asc),
+    htmlBody: buildMailBodyHtml(asc),
     attachName:   asc.attachName,
     attachBase64: asc.attachBase64
   };

@@ -1,19 +1,19 @@
 import nodemailer from 'nodemailer';
 
 export default async function handler(req, res) {
-  // ── Auth gate — must have a valid session cookie ──────────────────────────
+  // Auth gate
   const cookie = req.headers.cookie || '';
   if (!cookie.includes('rv_session=authenticated')) {
     return res.status(401).json({ error: 'Unauthorised — please log in' });
   }
 
-  // ── Method guard ──────────────────────────────────────────────────────────
+  // Method guard
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // ── Parse & validate payload ──────────────────────────────────────────────
-  const { smtp, to, cc = [], subject, body, attachName, attachBase64 } = req.body || {};
+  // Parse & validate payload
+  const { smtp, to, cc = [], subject, body, htmlBody, attachName, attachBase64 } = req.body || {};
 
   if (!smtp?.host || !smtp?.user || !smtp?.pass || !smtp?.fromEmail) {
     return res.status(400).json({ error: 'Missing SMTP configuration' });
@@ -21,21 +21,21 @@ export default async function handler(req, res) {
   if (!to || !to.includes('@')) {
     return res.status(400).json({ error: 'Invalid or missing To address' });
   }
-  if (!subject || !body) {
+  if (!subject || (!body && !htmlBody)) {
     return res.status(400).json({ error: 'Missing subject or body' });
   }
   if (!attachBase64 || !attachName) {
     return res.status(400).json({ error: 'Missing attachment data' });
   }
 
-  // ── Build Nodemailer transport ────────────────────────────────────────────
+  // Build Nodemailer transport
   const isSSL = smtp.security === 'ssl';
   const isTLS = smtp.security === 'tls';
 
   const transportConfig = {
     host: smtp.host,
     port: smtp.port || (isSSL ? 465 : 587),
-    secure: isSSL,           // true = SSL/TLS on connect (port 465)
+    secure: isSSL,
     auth: {
       user: smtp.user,
       pass: smtp.pass
@@ -44,13 +44,12 @@ export default async function handler(req, res) {
       requireTLS: true,
       tls: { rejectUnauthorized: false }
     }),
-    // Allow self-signed certs on private mail servers
     tls: { rejectUnauthorized: false }
   };
 
   const transporter = nodemailer.createTransport(transportConfig);
 
-  // ── Build mail options ────────────────────────────────────────────────────
+  // Build mail options
   // Filter & deduplicate CC list
   const ccList = [...new Set(
     (Array.isArray(cc) ? cc : [cc])
@@ -63,18 +62,19 @@ export default async function handler(req, res) {
     to,
     ...(ccList.length && { cc: ccList }),
     subject,
-    text: body,
+    text: body || htmlBody?.replace(/<[^>]*>/g, '') || '',
+    html: htmlBody || body?.replace(/\n/g, '<br>'),
     attachments: [
       {
         filename: attachName,
-        content:  attachBase64,
+        content: attachBase64,
         encoding: 'base64',
         contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
       }
     ]
   };
 
-  // ── Send ──────────────────────────────────────────────────────────────────
+  // Send
   try {
     const info = await transporter.sendMail(mailOptions);
     console.log(`[send-asc-mail] Sent to ${to} — messageId: ${info.messageId}`);
