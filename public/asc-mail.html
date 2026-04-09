@@ -1120,7 +1120,7 @@ function buildMailBodyHtml(asc) {
   ${p(`Dear <strong>${asc.ascName}</strong>,`)}
   ${p('We hope you are doing well.')}
   ${p(`This is a gentle reminder to review your available stock (as per attached sheet) and arrange the dispatch of all pending items to the RV Warehouse by <strong>${asc.mailDate}</strong>. We kindly request that all materials are sent in complete and good condition to avoid any issues upon receipt.`)}
-  ${p(`In case we do not receive the complete stock by <strong>${asc.deadlineDate}</strong>, or if it is received incomplete or not in proper condition, we may have to assume that the stock has not been dispatched. Accordingly, such pending stock may be treated as penalty accepted at your end, and further billing may be processed for the same.`)}
+  ${p(`In case we do not receive the complete stock by <strong>${asc.deadlineDate}</strong>, or if it is received incomplete or not in proper condition, we may have to assume that the stock has not been dispatched. Accordingly, such pending stock may be <strong>treated as penalty accepted, as per the final stock value (including tax) mentioned in the table below</strong> at your end, and further billing may be processed for the same.`)}
   ${p('We truly appreciate your cooperation and support in ensuring the timely and smooth handling of this matter.')}
 
   ${asc.summaryTableHtml || ''}
