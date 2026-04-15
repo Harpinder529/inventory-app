@@ -4,9 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Email Template Editor | RV Solutions</title>
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/quill-better-table@1.2.4/dist/quill-better-table.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -33,11 +32,7 @@
       flex-wrap: wrap;
       gap: 1rem;
     }
-    .header h1 {
-      font-size: 1.8rem;
-      font-weight: 800;
-      letter-spacing: -0.03em;
-    }
+    .header h1 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.03em; }
     .header h1 span { color: #0059ff; }
     .back-link {
       font-size: 0.75rem;
@@ -50,192 +45,258 @@
       transition: background 0.15s;
     }
     .back-link:hover { background: #e2ddd4; }
-    .main-content {
-      display: flex;
-      height: calc(100vh - 200px);
-      min-height: 600px;
-    }
+    .main-content { display: flex; height: calc(100vh - 160px); min-height: 600px; }
+
+    /* ── Sidebar ── */
     .sidebar {
-      width: 320px;
+      width: 300px;
       border-right: 1px solid #e9e6df;
       background: #fefcf8;
       display: flex;
       flex-direction: column;
+      flex-shrink: 0;
     }
-    .template-list-header {
-      padding: 1.5rem;
-      border-bottom: 1px solid #e9e6df;
-    }
+    .template-list-header { padding: 1.25rem; border-bottom: 1px solid #e9e6df; }
     .btn-new {
       width: 100%;
       background: #e5b13b;
       border: none;
-      padding: 0.75rem;
+      padding: 0.7rem;
       border-radius: 0.75rem;
       font-weight: 600;
       cursor: pointer;
       font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
       transition: background 0.15s;
     }
     .btn-new:hover { background: #0059ff; color: #fff; }
-    .template-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1rem;
-    }
+    .template-list { flex: 1; overflow-y: auto; padding: 0.75rem; }
     .template-item {
-      padding: 1rem;
-      margin-bottom: 0.5rem;
+      padding: 0.85rem 1rem;
+      margin-bottom: 0.4rem;
       border-radius: 0.75rem;
       cursor: pointer;
       transition: all 0.15s;
       border: 1px solid transparent;
     }
-    .template-item:hover {
-      background: #fefaf0;
-      border-color: #e5b13b;
-    }
-    .template-item.active {
-      background: #fef5e7;
-      border-color: #e5b13b;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-    .template-name {
-      font-weight: 700;
-      margin-bottom: 0.25rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .template-badge {
-      font-size: 0.65rem;
-      background: #e5b13b;
-      padding: 0.2rem 0.5rem;
-      border-radius: 20px;
-      font-weight: 600;
-    }
-    .template-date {
-      font-size: 0.7rem;
-      color: #8c9a91;
-      font-family: 'JetBrains Mono', monospace;
-    }
-    .editor-area {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    .editor-toolbar {
-      padding: 1rem 1.5rem;
+    .template-item:hover { background: #fefaf0; border-color: #e5b13b; }
+    .template-item.active { background: #fef5e7; border-color: #e5b13b; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .template-name { font-weight: 700; margin-bottom: 0.2rem; display: flex; justify-content: space-between; align-items: center; font-size: 0.88rem; }
+    .template-badge { font-size: 0.6rem; background: #e5b13b; padding: 0.15rem 0.45rem; border-radius: 20px; font-weight: 600; }
+    .template-date { font-size: 0.68rem; color: #8c9a91; font-family: 'JetBrains Mono', monospace; }
+
+    /* ── Editor Area ── */
+    .editor-area { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+
+    /* Variable bar */
+    .var-bar {
+      padding: 0.75rem 1.25rem;
       background: #fefcf8;
       border-bottom: 1px solid #e9e6df;
       display: flex;
-      gap: 1rem;
+      gap: 0.5rem;
       flex-wrap: wrap;
       align-items: center;
     }
+    .var-bar-label { font-size: 0.72rem; font-weight: 700; color: #5b6e6b; margin-right: 0.25rem; white-space: nowrap; }
     .variable-badge {
       background: #f0f2f5;
-      padding: 0.4rem 0.8rem;
+      padding: 0.3rem 0.7rem;
       border-radius: 20px;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       font-family: 'JetBrains Mono', monospace;
       cursor: pointer;
       transition: background 0.15s;
+      border: 1px solid transparent;
     }
-    .variable-badge:hover {
-      background: #e5b13b;
-      color: #1a1e2b;
+    .variable-badge:hover { background: #e5b13b; border-color: #c99020; }
+
+    /* Toolbar */
+    .editor-toolbar {
+      padding: 0.5rem 1rem;
+      background: #f8f7f4;
+      border-bottom: 1px solid #e9e6df;
+      display: flex;
+      gap: 2px;
+      flex-wrap: wrap;
+      align-items: center;
     }
-    .btn-insert-table {
-      background: #1e2f2b;
-      color: #fae669;
+    .toolbar-sep {
+      width: 1px;
+      height: 22px;
+      background: #d8d4cc;
+      margin: 0 4px;
+    }
+    .tb {
       border: none;
-      padding: 0.4rem 0.9rem;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-family: 'JetBrains Mono', monospace;
+      background: transparent;
+      padding: 4px 7px;
+      border-radius: 5px;
       cursor: pointer;
-      transition: background 0.15s;
-    }
-    .btn-insert-table:hover { background: #0059ff; color: #fff; }
-    .editor-form {
-      flex: 1;
-      overflow-y: auto;
-      padding: 1.5rem;
-    }
-    .form-group {
-      margin-bottom: 1.5rem;
-    }
-    .form-group label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      font-size: 0.85rem;
-    }
-    .form-group input[type="text"] {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1.5px solid #e2ddd4;
-      border-radius: 0.75rem;
-      font-size: 0.9rem;
+      font-size: 0.78rem;
       font-family: 'Inter', sans-serif;
-    }
-    .form-group input[type="text"]:focus {
-      outline: none;
-      border-color: #e5b13b;
-    }
-    .checkbox-group {
+      color: #333;
+      transition: background 0.12s;
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 3px;
+      white-space: nowrap;
     }
-    .checkbox-group input {
-      width: auto;
+    .tb:hover { background: #e5e2db; }
+    .tb.active { background: #e5b13b; color: #1a1e2b; }
+    .tb svg { width: 14px; height: 14px; flex-shrink: 0; }
+    .tb-select {
+      border: 1px solid #d8d4cc;
+      background: #fff;
+      padding: 3px 6px;
+      border-radius: 5px;
+      font-size: 0.78rem;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
     }
-    #htmlEditor {
-      height: 350px;
-      margin-bottom: 1rem;
+
+    /* Table popup */
+    .table-popup {
+      position: absolute;
+      background: #fff;
+      border: 1px solid #e9e6df;
+      border-radius: 10px;
+      padding: 10px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      z-index: 999;
+      display: none;
     }
+    .table-popup.show { display: block; }
+    .table-grid { display: grid; grid-template-columns: repeat(8, 22px); gap: 2px; margin-bottom: 8px; }
+    .table-cell-pick {
+      width: 22px; height: 22px;
+      border: 1px solid #d0ccc4;
+      border-radius: 3px;
+      cursor: pointer;
+      background: #f8f7f4;
+      transition: background 0.1s, border-color 0.1s;
+    }
+    .table-cell-pick.hovered { background: #fef3cd; border-color: #e5b13b; }
+    .table-popup-label { font-size: 0.72rem; text-align: center; color: #666; font-family: 'JetBrains Mono', monospace; }
+
+    /* Editor scroll wrapper */
+    .editor-scroll { flex: 1; overflow-y: auto; padding: 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
+
+    .form-group label { display: block; font-weight: 600; margin-bottom: 0.4rem; font-size: 0.82rem; color: #444; }
+    .form-group input[type="text"] {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      border: 1.5px solid #e2ddd4;
+      border-radius: 0.65rem;
+      font-size: 0.88rem;
+      font-family: 'Inter', sans-serif;
+    }
+    .form-group input[type="text"]:focus { outline: none; border-color: #e5b13b; }
+
+    /* The actual contenteditable editor */
+    .rich-editor-wrap {
+      border: 1.5px solid #e2ddd4;
+      border-radius: 0.65rem;
+      overflow: hidden;
+    }
+    #richEditor {
+      min-height: 320px;
+      padding: 1rem 1.25rem;
+      outline: none;
+      font-size: 0.9rem;
+      line-height: 1.7;
+      font-family: 'Inter', sans-serif;
+      color: #1a1e2b;
+    }
+    #richEditor:focus { border-color: #e5b13b; }
+
+    /* Table styles inside editor */
+    #richEditor table {
+      border-collapse: collapse;
+      width: 100%;
+      margin: 10px 0;
+      table-layout: fixed;
+    }
+    #richEditor table td, #richEditor table th {
+      border: 1.5px solid #b0aaa0;
+      padding: 7px 10px;
+      min-width: 60px;
+      min-height: 28px;
+      vertical-align: top;
+      position: relative;
+      outline: none;
+    }
+    #richEditor table th {
+      background: #1e2f2b;
+      color: #fae669;
+      font-weight: 600;
+      font-size: 0.82rem;
+    }
+    #richEditor table td { background: #fff; }
+    #richEditor table td:focus, #richEditor table th:focus {
+      background: #fffbf0;
+      box-shadow: inset 0 0 0 2px #e5b13b;
+    }
+    #richEditor table tr:nth-child(even) td { background: #fafaf8; }
+
+    /* Selected table */
+    .selected-table { outline: 2px solid #0059ff !important; }
+
+    /* Table context menu */
+    .ctx-menu {
+      position: fixed;
+      background: #fff;
+      border: 1px solid #e0dbd2;
+      border-radius: 8px;
+      padding: 4px 0;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+      z-index: 9999;
+      display: none;
+      min-width: 180px;
+    }
+    .ctx-menu.show { display: block; }
+    .ctx-item {
+      padding: 7px 14px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #1a1e2b;
+      transition: background 0.1s;
+    }
+    .ctx-item:hover { background: #fef5e7; }
+    .ctx-item.danger { color: #c94f31; }
+    .ctx-item.danger:hover { background: #fef0ed; }
+    .ctx-sep { height: 1px; background: #e9e6df; margin: 3px 0; }
+
+    .checkbox-group { display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; }
+    .checkbox-group input { width: auto; }
+
     .editor-actions {
       display: flex;
-      gap: 1rem;
-      margin-top: 1rem;
-      padding-top: 1rem;
+      gap: 0.75rem;
+      padding-top: 0.75rem;
       border-top: 1px solid #e9e6df;
+      flex-wrap: wrap;
     }
     .btn-save, .btn-delete, .btn-preview {
-      padding: 0.75rem 1.5rem;
-      border-radius: 0.75rem;
+      padding: 0.65rem 1.3rem;
+      border-radius: 0.65rem;
       font-weight: 600;
       cursor: pointer;
       border: none;
       font-family: 'Inter', sans-serif;
+      font-size: 0.85rem;
       transition: all 0.15s;
     }
-    .btn-save {
-      background: #e5b13b;
-      color: #1a1e2b;
-    }
+    .btn-save { background: #e5b13b; color: #1a1e2b; }
     .btn-save:hover { background: #0059ff; color: #fff; }
-    .btn-delete {
-      background: #fff;
-      border: 1.5px solid #c94f31;
-      color: #c94f31;
-    }
+    .btn-delete { background: #fff; border: 1.5px solid #c94f31; color: #c94f31; }
     .btn-delete:hover { background: #c94f31; color: #fff; }
-    .btn-preview {
-      background: #1e2f2b;
-      color: #fae669;
-    }
+    .btn-preview { background: #1e2f2b; color: #fae669; }
     .btn-preview:hover { background: #0059ff; color: #fff; }
-    .variables-info {
-      padding: 0.75rem 1.5rem;
-      background: #fef5e7;
-      border-top: 1px solid #e9e6df;
-      font-size: 0.75rem;
-      color: #5b6e6b;
-    }
+
     .toast-msg {
       position: fixed;
       bottom: 1.5rem;
@@ -246,15 +307,12 @@
       padding: 0.6rem 1.4rem;
       border-radius: 60px;
       font-size: 0.8rem;
-      z-index: 1200;
+      z-index: 10000;
       opacity: 0;
       transition: 0.2s;
       pointer-events: none;
     }
     .toast-msg.show { opacity: 1; }
-
-    /* quill-better-table context menu z-index fix */
-    .quill-better-table-wrapper { z-index: 100; }
   </style>
 </head>
 <body>
@@ -263,291 +321,546 @@
     <h1>Email Template <span>Editor</span></h1>
     <a class="back-link" href="/asc-mail">← Back to Mail Sender</a>
   </div>
-  
+
   <div class="main-content">
+    <!-- Sidebar -->
     <div class="sidebar">
       <div class="template-list-header">
         <button class="btn-new" onclick="createNewTemplate()">+ New Template</button>
       </div>
-      <div class="template-list" id="templateList"></div>
-    </div>
-    
-    <div class="editor-area">
-      <div class="editor-toolbar">
-        <span style="font-size:0.75rem;font-weight:600;margin-right:0.5rem;">Variables:</span>
-        <div class="variable-badge" onclick="insertVariable('{{ascName}}')">{{ascName}}</div>
-        <div class="variable-badge" onclick="insertVariable('{{mailDate}}')">{{mailDate}}</div>
-        <div class="variable-badge" onclick="insertVariable('{{deadlineDate}}')">{{deadlineDate}}</div>
-        <div class="variable-badge" onclick="insertVariable('{{summaryTableHtml}}')">{{summaryTableHtml}}</div>
-        <div class="variable-badge" onclick="insertVariable('{{stkQty}}')">{{stkQty}}</div>
-        <div class="variable-badge" onclick="insertVariable('{{stnQty}}')">{{stnQty}}</div>
-        <div class="variable-badge" onclick="insertVariable('{{totalVal}}')">{{totalVal}}</div>
-        <div class="variable-badge" onclick="insertVariable('{{asm}}')">{{asm}}</div>
-        <div class="variable-badge" onclick="insertVariable('{{toEmail}}')">{{toEmail}}</div>
-        <button class="btn-insert-table" onclick="insertTable()">＋ Insert Table</button>
+      <div class="template-list" id="templateList">
+        <div style="padding:1rem;text-align:center;color:#8c9a91;font-size:0.82rem;">No templates yet.</div>
       </div>
-      
-      <div class="editor-form">
+    </div>
+
+    <!-- Editor -->
+    <div class="editor-area">
+      <!-- Variable insertion bar -->
+      <div class="var-bar">
+        <span class="var-bar-label">Insert Variable:</span>
+        <span class="variable-badge" onclick="insertVar('{{ascName}}')">{{ascName}}</span>
+        <span class="variable-badge" onclick="insertVar('{{mailDate}}')">{{mailDate}}</span>
+        <span class="variable-badge" onclick="insertVar('{{deadlineDate}}')">{{deadlineDate}}</span>
+        <span class="variable-badge" onclick="insertVar('{{summaryTableHtml}}')">{{summaryTableHtml}}</span>
+        <span class="variable-badge" onclick="insertVar('{{stkQty}}')">{{stkQty}}</span>
+        <span class="variable-badge" onclick="insertVar('{{stnQty}}')">{{stnQty}}</span>
+        <span class="variable-badge" onclick="insertVar('{{totalVal}}')">{{totalVal}}</span>
+        <span class="variable-badge" onclick="insertVar('{{asm}}')">{{asm}}</span>
+        <span class="variable-badge" onclick="insertVar('{{toEmail}}')">{{toEmail}}</span>
+      </div>
+
+      <!-- Formatting toolbar -->
+      <div class="editor-toolbar" id="editorToolbar">
+        <!-- Text style -->
+        <select class="tb-select" onchange="execCmd('formatBlock', this.value); this.blur()">
+          <option value="p">Paragraph</option>
+          <option value="h1">Heading 1</option>
+          <option value="h2">Heading 2</option>
+          <option value="h3">Heading 3</option>
+        </select>
+        <div class="toolbar-sep"></div>
+        <!-- Basic formatting -->
+        <button class="tb" title="Bold (Ctrl+B)" onmousedown="e=>{e.preventDefault()}" onclick="execCmd('bold')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/><path d="M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z"/></svg>
+        </button>
+        <button class="tb" title="Italic (Ctrl+I)" onclick="execCmd('italic')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg>
+        </button>
+        <button class="tb" title="Underline (Ctrl+U)" onclick="execCmd('underline')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 3v7a6 6 0 0 0 6 6 6 6 0 0 0 6-6V3"/><line x1="4" y1="21" x2="20" y2="21"/></svg>
+        </button>
+        <button class="tb" title="Strikethrough" onclick="execCmd('strikeThrough')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><path d="M16 6C16 6 14.5 4 12 4C9 4 7.5 5.5 7.5 7.5C7.5 9 8.5 10 10 10.5"/><path d="M8 18C8 18 9.5 20 12 20C15 20 16.5 18.5 16.5 16.5C16.5 15 15.5 14 14 13.5"/></svg>
+        </button>
+        <div class="toolbar-sep"></div>
+        <!-- Color -->
+        <label class="tb" title="Text Color" style="cursor:pointer;">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3L4 21h2.5l1.5-4h8l1.5 4H20L12 3zm-3.5 12L12 7l3.5 8h-7z"/></svg>
+          <input type="color" style="width:0;height:0;opacity:0;position:absolute;" onchange="execCmd('foreColor', this.value)">
+        </label>
+        <label class="tb" title="Highlight Color" style="cursor:pointer;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="14" width="18" height="4" rx="1"/><path d="M9 14L12 4l3 10"/></svg>
+          <input type="color" value="#ffff00" style="width:0;height:0;opacity:0;position:absolute;" onchange="execCmd('hiliteColor', this.value)">
+        </label>
+        <div class="toolbar-sep"></div>
+        <!-- Lists -->
+        <button class="tb" title="Bullet List" onclick="execCmd('insertUnorderedList')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1" fill="currentColor"/><circle cx="4" cy="12" r="1" fill="currentColor"/><circle cx="4" cy="18" r="1" fill="currentColor"/></svg>
+        </button>
+        <button class="tb" title="Numbered List" onclick="execCmd('insertOrderedList')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><path d="M4 6h1v4" stroke-width="1.5"/><path d="M4 10h2" stroke-width="1.5"/><path d="M6 18H4c0-1 2-2 2-3s-1-1.5-2-1" stroke-width="1.5"/></svg>
+        </button>
+        <div class="toolbar-sep"></div>
+        <!-- Align -->
+        <button class="tb" title="Align Left" onclick="execCmd('justifyLeft')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="18" y2="18"/></svg>
+        </button>
+        <button class="tb" title="Center" onclick="execCmd('justifyCenter')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="6" y1="12" x2="18" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        </button>
+        <button class="tb" title="Align Right" onclick="execCmd('justifyRight')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="9" y1="12" x2="21" y2="12"/><line x1="6" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="toolbar-sep"></div>
+        <!-- Link -->
+        <button class="tb" title="Insert Link" onclick="insertLink()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        </button>
+        <div class="toolbar-sep"></div>
+        <!-- TABLE button with grid picker -->
+        <div style="position:relative;">
+          <button class="tb" title="Insert Table" id="tableBtn" onclick="toggleTablePicker(event)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+            Table ▾
+          </button>
+          <div class="table-popup" id="tablePicker">
+            <div class="table-grid" id="tableGrid"></div>
+            <div class="table-popup-label" id="tablePickerLabel">0 × 0</div>
+          </div>
+        </div>
+        <div class="toolbar-sep"></div>
+        <!-- Undo/Redo -->
+        <button class="tb" title="Undo (Ctrl+Z)" onclick="execCmd('undo')">↩</button>
+        <button class="tb" title="Redo (Ctrl+Y)" onclick="execCmd('redo')">↪</button>
+      </div>
+
+      <!-- Form fields + editor -->
+      <div class="editor-scroll">
         <div class="form-group">
           <label>Template Name</label>
           <input type="text" id="templateName" placeholder="e.g., Standard Reminder, Urgent Dispatch...">
         </div>
-        
         <div class="form-group">
           <label>Email Subject</label>
           <input type="text" id="subjectTemplate" placeholder="Urgent: Dispatch of Pending Stock to RV Warehouse | {{ascName}}">
         </div>
-        
         <div class="form-group">
-          <label>Email Body (HTML)</label>
-          <div id="htmlEditor"></div>
+          <label>Email Body</label>
+          <div class="rich-editor-wrap">
+            <div id="richEditor" contenteditable="true" spellcheck="true"></div>
+          </div>
         </div>
-        
         <div class="form-group">
           <label class="checkbox-group">
             <input type="checkbox" id="isDefault"> Set as default template
           </label>
         </div>
-        
         <div class="editor-actions">
-          <button class="btn-save" onclick="saveTemplate()">💾 Save Template</button>
-          <button class="btn-preview" onclick="previewTemplate()">👁 Preview</button>
+          <button class="btn-save" onclick="saveTemplate()">Save Template</button>
+          <button class="btn-preview" onclick="previewTemplate()">Preview</button>
           <button class="btn-delete" id="deleteBtn" onclick="deleteTemplate()" style="display:none;">🗑 Delete</button>
         </div>
-      </div>
-      
-      <div class="variables-info">
-        💡 <strong>Available variables:</strong> {{ascName}}, {{mailDate}}, {{deadlineDate}}, {{summaryTableHtml}}, {{stkQty}}, {{stnQty}}, {{totalVal}}, {{asm}}, {{toEmail}}
-        <br>📝 Use these variables in your template - they will be replaced with actual data when sending emails.
-        <br>📊 <strong>To add a table:</strong> Click <strong>"＋ Insert Table"</strong> button above, then right-click the table to add/remove rows & columns.
       </div>
     </div>
   </div>
 </div>
+
+<!-- Context menu for table right-click -->
+<div class="ctx-menu" id="ctxMenu">
+  <div class="ctx-item" onclick="tableOp('addRowAbove')">⬆ Add Row Above</div>
+  <div class="ctx-item" onclick="tableOp('addRowBelow')">⬇ Add Row Below</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="tableOp('addColLeft')">⬅ Add Column Left</div>
+  <div class="ctx-item" onclick="tableOp('addColRight')">➡ Add Column Right</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="tableOp('deleteRow')">✕ Delete Row</div>
+  <div class="ctx-item" onclick="tableOp('deleteCol')">✕ Delete Column</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item danger" onclick="tableOp('deleteTable')">🗑 Delete Table</div>
+</div>
+
 <div id="globalToast" class="toast-msg"></div>
 
-<!-- Load Quill first, then quill-better-table -->
-<!-- Only need Quill itself, no table plugin CDN needed -->
-<script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-
 <script>
-  let quill;
-  let currentTemplateId = null;
-  let templates = [];
 
-  // ── Initialize Quill (no table module, we handle tables manually) ──
-  quill = new Quill('#htmlEditor', {
-    theme: 'snow',
-    placeholder: 'Write your email template here...',
-    modules: {
-      toolbar: [
-        ['bold', 'italic', 'underline', 'strike'],
-        ['blockquote', 'code-block'],
-        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
-        [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-        [{ 'script': 'sub' }, { 'script': 'super' }],
-        [{ 'indent': '-1' }, { 'indent': '+1' }],
-        [{ 'color': [] }, { 'background': [] }],
-        [{ 'align': [] }],
-        ['link'],
-        ['clean']
-      ]
-    }
+// STATE
+let currentTemplateId = null;
+let templates = [];
+let savedSelection = null;
+let ctxTargetCell = null;
+
+const editor = document.getElementById('richEditor');
+
+// EXEC COMMAND WRAPPER
+function execCmd(cmd, val = null) {
+  editor.focus();
+  document.execCommand(cmd, false, val);
+}
+
+// SAVE / RESTORE SELECTION (for variable insert)
+function saveSelection() {
+  const sel = window.getSelection();
+  if (sel && sel.rangeCount > 0 && editor.contains(sel.anchorNode)) {
+    savedSelection = sel.getRangeAt(0).cloneRange();
+  }
+}
+function restoreSelection() {
+  if (savedSelection) {
+    const sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(savedSelection);
+  }
+}
+editor.addEventListener('blur', saveSelection);
+editor.addEventListener('keyup', saveSelection);
+editor.addEventListener('mouseup', saveSelection);
+
+// insert variable badge at cursor position
+function insertVar(variable) {
+  restoreSelection();
+  editor.focus();
+  const sel = window.getSelection();
+  if (!sel || sel.rangeCount === 0) {
+    // fallback if no selection (shouldn't happen since we focus, but just in case)
+    editor.innerHTML += `<span style="background:#fef3cd;border-radius:3px;padding:0 3px;font-family:monospace;font-size:0.85em;">${variable}</span>`;
+    return;
+  }
+  const range = sel.getRangeAt(0);
+  range.deleteContents();
+  const span = document.createElement('span');
+  span.style.cssText = 'background:#fef3cd;border-radius:3px;padding:0 3px;font-family:monospace;font-size:0.85em;';
+  span.textContent = variable;
+  range.insertNode(span);
+  range.setStartAfter(span);
+  range.collapse(true);
+  sel.removeAllRanges();
+  sel.addRange(range);
+  saveSelection();
+}
+
+// insert link
+function insertLink() {
+  const url = prompt('Enter URL:', 'https://');
+  if (url) execCmd('createLink', url);
+}
+
+// table picker (grid hover selector)
+const picker = document.getElementById('tablePicker');
+const tableGrid = document.getElementById('tableGrid');
+const pickerLabel = document.getElementById('tablePickerLabel');
+const MAX_R = 8, MAX_C = 8;
+
+// Build grid cells
+for (let r = 0; r < MAX_R; r++) {
+  for (let c = 0; c < MAX_C; c++) {
+    const cell = document.createElement('div');
+    cell.className = 'table-cell-pick';
+    cell.dataset.r = r + 1;
+    cell.dataset.c = c + 1;
+    cell.addEventListener('mouseover', () => highlightGrid(r + 1, c + 1));
+    cell.addEventListener('click', () => { insertTable(r + 1, c + 1); picker.classList.remove('show'); });
+    tableGrid.appendChild(cell);
+  }
+}
+
+function highlightGrid(rows, cols) {
+  tableGrid.querySelectorAll('.table-cell-pick').forEach(el => {
+    const er = parseInt(el.dataset.r), ec = parseInt(el.dataset.c);
+    el.classList.toggle('hovered', er <= rows && ec <= cols);
   });
+  pickerLabel.textContent = `${rows} × ${cols}`;
+}
 
-  // ── Table insertion: inject raw HTML into Quill's editor ──
-  function insertTable() {
-    const rows = parseInt(prompt('Number of rows (including header):', '3'), 10) || 3;
-    const cols = parseInt(prompt('Number of columns:', '3'), 10) || 3;
+function toggleTablePicker(e) {
+  e.stopPropagation();
+  saveSelection();
+  picker.classList.toggle('show');
+}
 
-    let tableHtml = `<table border="1" cellpadding="6" cellspacing="0" style="border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;"><thead><tr>`;
+document.addEventListener('click', () => picker.classList.remove('show'));
+
+// INSERT TABLE
+function insertTable(rows, cols) {
+  restoreSelection();
+  editor.focus();
+
+  let html = '<table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;width:100%;margin:10px 0;table-layout:fixed;">';
+  // Header row
+  html += '<thead><tr>';
+  for (let c = 0; c < cols; c++) {
+    html += `<th contenteditable="true" style="background:#1e2f2b;color:#fae669;padding:8px 10px;border:1.5px solid #b0aaa0;font-weight:600;font-size:0.85em;text-align:left;">Header ${c + 1}</th>`;
+  }
+  html += '</tr></thead>';
+  // Body rows
+  html += '<tbody>';
+  for (let r = 0; r < rows - 1; r++) {
+    html += '<tr>';
     for (let c = 0; c < cols; c++) {
-      tableHtml += `<th style="background:#1e2f2b;color:#fae669;padding:8px;border:1px solid #999;text-align:left;">Header ${c + 1}</th>`;
+      html += `<td contenteditable="true" style="padding:8px 10px;border:1.5px solid #b0aaa0;min-width:60px;background:#fff;"> </td>`;
     }
-    tableHtml += `</tr></thead><tbody>`;
-    for (let r = 0; r < rows - 1; r++) {
-      tableHtml += `<tr>`;
-      for (let c = 0; c < cols; c++) {
-        tableHtml += `<td style="padding:8px;border:1px solid #999;">&nbsp;</td>`;
-      }
-      tableHtml += `</tr>`;
-    }
-    tableHtml += `</tbody></table>`;
-
-    // Use Quill's clipboard.dangerouslyPasteHTML at cursor position
-    const range = quill.getSelection(true);
-    const index = range ? range.index : quill.getLength();
-    quill.clipboard.dangerouslyPasteHTML(index, tableHtml, 'user');
-
-    showToast(`✅ Inserted ${rows}×${cols} table`);
+    html += '</tr>';
   }
+  html += '</tbody></table><p><br></p>';
 
-  // ── Toast ──
-  function showToast(msg, isErr = false) {
-    const toast = document.getElementById('globalToast');
-    toast.textContent = msg;
-    toast.style.background = isErr ? '#c94f31' : '#1e2f2b';
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 3000);
+  document.execCommand('insertHTML', false, html);
+  showToast(`${rows}×${cols} table inserted — right-click to add/remove rows & columns`);
+}
+
+// TABLE CONTEXT MENU (right-click on table cell)
+const ctxMenu = document.getElementById('ctxMenu');
+
+editor.addEventListener('contextmenu', e => {
+  const cell = e.target.closest('td, th');
+  if (!cell || !editor.contains(cell)) return;
+  e.preventDefault();
+  ctxTargetCell = cell;
+  ctxMenu.style.left = e.clientX + 'px';
+  ctxMenu.style.top = e.clientY + 'px';
+  ctxMenu.classList.add('show');
+});
+
+document.addEventListener('click', () => ctxMenu.classList.remove('show'));
+document.addEventListener('contextmenu', e => {
+  if (!e.target.closest('#richEditor table')) ctxMenu.classList.remove('show');
+});
+
+function tableOp(op) {
+  ctxMenu.classList.remove('show');
+  if (!ctxTargetCell) return;
+  const cell = ctxTargetCell;
+  const row = cell.closest('tr');
+  const table = cell.closest('table');
+  const tbody = table.querySelector('tbody') || table;
+  const thead = table.querySelector('thead');
+  const allRows = [...table.querySelectorAll('tr')];
+  const rowIndex = allRows.indexOf(row);
+  const cellIndex = [...row.children].indexOf(cell);
+  const colCount = row.children.length;
+
+  if (op === 'addRowAbove') {
+    const newRow = makeRow(colCount, rowIndex === 0);
+    row.parentNode.insertBefore(newRow, row);
   }
-
-  // ── Templates API ──
-  async function loadTemplates() {
-    try {
-      const res = await fetch('/api/templates');
-      templates = await res.json();
-      renderTemplateList();
-    } catch (err) {
-      showToast('Failed to load templates', true);
-    }
+  else if (op === 'addRowBelow') {
+    const nextRow = row.nextElementSibling;
+    const isHeader = row.closest('thead') !== null;
+    const newRow = makeRow(colCount, false);
+    if (nextRow) row.parentNode.insertBefore(newRow, nextRow);
+    else (tbody || table).appendChild(newRow);
   }
-
-  function renderTemplateList() {
-    const container = document.getElementById('templateList');
-    if (!container) return;
-    if (templates.length === 0) {
-      container.innerHTML = '<div style="padding:1rem;text-align:center;color:#8c9a91;">No templates yet. Click "New Template" to create one.</div>';
-      return;
-    }
-    container.innerHTML = templates.map(tpl => `
-      <div class="template-item ${currentTemplateId === tpl.id ? 'active' : ''}" onclick="loadTemplate('${tpl.id}')">
-        <div class="template-name">
-          ${escapeHtml(tpl.name)}
-          ${tpl.isDefault ? '<span class="template-badge">Default</span>' : ''}
-        </div>
-        <div class="template-date">Updated: ${new Date(tpl.updatedAt).toLocaleDateString()}</div>
-      </div>
-    `).join('');
+  else if (op === 'addColLeft') {
+    allRows.forEach((r, ri) => {
+      const refCell = r.children[cellIndex];
+      const newCell = ri === 0 && thead ? makeTh() : makeTd();
+      r.insertBefore(newCell, refCell);
+    });
   }
-
-  function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
+  else if (op === 'addColRight') {
+    allRows.forEach((r, ri) => {
+      const refCell = r.children[cellIndex];
+      const newCell = ri === 0 && thead ? makeTh() : makeTd();
+      if (refCell.nextSibling) r.insertBefore(newCell, refCell.nextSibling);
+      else r.appendChild(newCell);
+    });
   }
-
-  async function loadTemplate(id) {
-    try {
-      const res = await fetch(`/api/templates?id=${id}`);
-      if (!res.ok) throw new Error('Failed to load');
-      const tpl = await res.json();
-      currentTemplateId = tpl.id;
-      document.getElementById('templateName').value = tpl.name;
-      document.getElementById('subjectTemplate').value = tpl.subjectTemplate;
-      document.getElementById('isDefault').checked = tpl.isDefault;
-      quill.root.innerHTML = tpl.htmlBodyTemplate;
-      document.getElementById('deleteBtn').style.display = 'block';
-      renderTemplateList();
-      showToast(`Loaded: ${tpl.name}`);
-    } catch (err) {
-      showToast('Failed to load template', true);
-    }
+  else if (op === 'deleteRow') {
+    if (allRows.length <= 1) { table.remove(); return; }
+    row.remove();
   }
-
-  function insertVariable(variable) {
-    const range = quill.getSelection(true);
-    const index = range ? range.index : quill.getLength();
-    quill.insertText(index, variable, 'user');
-    quill.setSelection(index + variable.length, 0);
+  else if (op === 'deleteCol') {
+    if (colCount <= 1) { table.remove(); return; }
+    allRows.forEach(r => { if (r.children[cellIndex]) r.children[cellIndex].remove(); });
   }
-
-  async function saveTemplate() {
-    const name = document.getElementById('templateName').value.trim();
-    const subjectTemplate = document.getElementById('subjectTemplate').value.trim();
-    const htmlBodyTemplate = quill.root.innerHTML;
-    const isDefault = document.getElementById('isDefault').checked;
-
-    if (!name) return showToast('Please enter a template name', true);
-    if (!subjectTemplate) return showToast('Please enter a subject template', true);
-    if (!htmlBodyTemplate || htmlBodyTemplate === '<p><br></p>') return showToast('Please enter email body content', true);
-
-    const textBodyTemplate = htmlBodyTemplate.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
-    const payload = { name, subjectTemplate, htmlBodyTemplate, textBodyTemplate, isDefault };
-
-    try {
-      const url = currentTemplateId ? `/api/templates?id=${currentTemplateId}` : '/api/templates';
-      const method = currentTemplateId ? 'PUT' : 'POST';
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        const saved = await res.json();
-        showToast(currentTemplateId ? '✅ Template updated!' : '✅ Template created!');
-        await loadTemplates();
-        if (!currentTemplateId) loadTemplate(saved.id);
-        else renderTemplateList();
-      } else {
-        const err = await res.json();
-        showToast(err.error || 'Failed to save', true);
-      }
-    } catch (err) {
-      showToast('Network error', true);
-    }
+  else if (op === 'deleteTable') {
+    table.remove();
   }
+}
 
-  async function deleteTemplate() {
-    if (!currentTemplateId) return;
-    const template = templates.find(t => t.id === currentTemplateId);
-    if (template?.isDefault) return showToast('Cannot delete the default template', true);
-    if (!confirm('Delete this template? This cannot be undone.')) return;
-    try {
-      const res = await fetch(`/api/templates?id=${currentTemplateId}`, { method: 'DELETE' });
-      if (res.ok) {
-        showToast('🗑 Template deleted');
-        currentTemplateId = null;
-        document.getElementById('templateName').value = '';
-        document.getElementById('subjectTemplate').value = '';
-        document.getElementById('isDefault').checked = false;
-        quill.root.innerHTML = '';
-        document.getElementById('deleteBtn').style.display = 'none';
-        await loadTemplates();
-      } else {
-        const err = await res.json();
-        showToast(err.error || 'Failed to delete', true);
-      }
-    } catch (err) {
-      showToast('Network error', true);
+function makeTh(text = '') {
+  const th = document.createElement('th');
+  th.contentEditable = 'true';
+  th.style.cssText = 'background:#1e2f2b;color:#fae669;padding:8px 10px;border:1.5px solid #b0aaa0;font-weight:600;font-size:0.85em;text-align:left;';
+  th.textContent = text;
+  return th;
+}
+function makeTd(text = ' ') {
+  const td = document.createElement('td');
+  td.contentEditable = 'true';
+  td.style.cssText = 'padding:8px 10px;border:1.5px solid #b0aaa0;min-width:60px;background:#fff;';
+  td.textContent = text;
+  return td;
+}
+function makeRow(cols, isHeader = false) {
+  const tr = document.createElement('tr');
+  for (let i = 0; i < cols; i++) tr.appendChild(isHeader ? makeTh() : makeTd());
+  return tr;
+}
+
+// Tab key navigation inside tables
+editor.addEventListener('keydown', e => {
+  if (e.key === 'Tab') {
+    const cell = window.getSelection()?.anchorNode?.parentElement?.closest('td, th');
+    if (!cell) return;
+    e.preventDefault();
+    const allCells = [...cell.closest('table').querySelectorAll('td, th')];
+    const idx = allCells.indexOf(cell);
+    const next = e.shiftKey ? allCells[idx - 1] : allCells[idx + 1];
+    if (next) {
+      next.focus();
+      const range = document.createRange();
+      range.selectNodeContents(next);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+    } else if (!e.shiftKey) {
+      // Add new row at end
+      const lastRow = cell.closest('table').querySelector('tbody tr:last-child') || cell.closest('tr');
+      const newRow = makeRow(lastRow.children.length);
+      lastRow.parentNode.appendChild(newRow);
+      newRow.children[0].focus();
     }
   }
+});
 
-  function createNewTemplate() {
-    currentTemplateId = null;
-    document.getElementById('templateName').value = '';
-    document.getElementById('subjectTemplate').value = '';
-    document.getElementById('isDefault').checked = false;
-    quill.root.innerHTML = '';
-    document.getElementById('deleteBtn').style.display = 'none';
+// TOAST
+function showToast(msg, isErr = false) {
+  const toast = document.getElementById('globalToast');
+  toast.textContent = msg;
+  toast.style.background = isErr ? '#c94f31' : '#1e2f2b';
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3500);
+}
+
+// TEMPLATE CRUD
+async function loadTemplates() {
+  try {
+    const res = await fetch('/api/templates');
+    templates = await res.json();
     renderTemplateList();
-    showToast('📝 Creating new template...');
+  } catch (err) {
+    showToast('Failed to load templates', true);
   }
+}
 
-  function previewTemplate() {
-    const subject = document.getElementById('subjectTemplate').value;
-    const html = quill.root.innerHTML;
-    const win = window.open('', '_blank', 'width=900,height=700');
-    win.document.write(`
-      <!DOCTYPE html><html><head><meta charset="UTF-8"><title>Preview</title>
-      <style>
-        body { font-family: Arial, sans-serif; padding: 2rem; background: #fefaf0; max-width: 800px; margin: 0 auto; }
-        .preview-header { background: #1e2f2b; color: #fae669; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; }
-        .preview-content { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .variable-sample { background: #f0f2f5; padding: 0.75rem; margin-top: 1rem; border-radius: 4px; font-size: 0.8rem; color: #555; }
-        table { width: 100%; border-collapse: collapse; margin: 16px 0; }
-        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
-        th { background: #1e2f2b; color: #fae669; }
-      </style></head><body>
-      <div class="preview-header"><strong>Subject:</strong> ${escapeHtml(subject)}</div>
-      <div class="preview-content">${html}</div>
-      <div class="variable-sample">
-        💡 <strong>Sample variable values:</strong><br>
-        {{ascName}} → "ABC Service Center" &nbsp;|&nbsp; {{mailDate}} → "15-Apr-2026"<br>
-        {{deadlineDate}} → "21-Apr-2026" &nbsp;|&nbsp; {{stkQty}} → "150" &nbsp;|&nbsp; {{stnQty}} → "25" &nbsp;|&nbsp; {{totalVal}} → "15,00,000"
-      </div></body></html>`);
+function renderTemplateList() {
+  const container = document.getElementById('templateList');
+  if (!container) return;
+  if (!templates.length) {
+    container.innerHTML = '<div style="padding:1rem;text-align:center;color:#8c9a91;font-size:0.82rem;">No templates yet. Click "+ New Template".</div>';
+    return;
   }
+  container.innerHTML = templates.map(tpl => `
+    <div class="template-item ${currentTemplateId === tpl.id ? 'active' : ''}" onclick="loadTemplate('${tpl.id}')">
+      <div class="template-name">
+        ${escapeHtml(tpl.name)}
+        ${tpl.isDefault ? '<span class="template-badge">Default</span>' : ''}
+      </div>
+      <div class="template-date">Updated: ${new Date(tpl.updatedAt).toLocaleDateString()}</div>
+    </div>
+  `).join('');
+}
 
-  loadTemplates();
+function escapeHtml(t) {
+  const d = document.createElement('div');
+  d.textContent = t;
+  return d.innerHTML;
+}
+
+async function loadTemplate(id) {
+  try {
+    const res = await fetch(`/api/templates?id=${id}`);
+    if (!res.ok) throw new Error();
+    const tpl = await res.json();
+    currentTemplateId = tpl.id;
+    document.getElementById('templateName').value = tpl.name;
+    document.getElementById('subjectTemplate').value = tpl.subjectTemplate;
+    document.getElementById('isDefault').checked = tpl.isDefault;
+    editor.innerHTML = tpl.htmlBodyTemplate;
+    document.getElementById('deleteBtn').style.display = 'block';
+    renderTemplateList();
+    showToast(`Loaded: ${tpl.name}`);
+  } catch {
+    showToast('Failed to load template', true);
+  }
+}
+
+async function saveTemplate() {
+  const name = document.getElementById('templateName').value.trim();
+  const subjectTemplate = document.getElementById('subjectTemplate').value.trim();
+  const htmlBodyTemplate = editor.innerHTML;
+  const isDefault = document.getElementById('isDefault').checked;
+
+  if (!name) return showToast('Please enter a template name', true);
+  if (!subjectTemplate) return showToast('Please enter a subject template', true);
+  if (!htmlBodyTemplate || htmlBodyTemplate === '<br>') return showToast('Please enter email body content', true);
+
+  const textBodyTemplate = editor.innerText.replace(/\s+/g, ' ').trim();
+  const payload = { name, subjectTemplate, htmlBodyTemplate, textBodyTemplate, isDefault };
+
+  try {
+    const url = currentTemplateId ? `/api/templates?id=${currentTemplateId}` : '/api/templates';
+    const method = currentTemplateId ? 'PUT' : 'POST';
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    if (res.ok) {
+      const saved = await res.json();
+      showToast(currentTemplateId ? 'Template updated!' : 'Template created!');
+      await loadTemplates();
+      if (!currentTemplateId) loadTemplate(saved.id);
+      else renderTemplateList();
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Failed to save', true);
+    }
+  } catch { showToast('Network error', true); }
+}
+
+async function deleteTemplate() {
+  if (!currentTemplateId) return;
+  const tpl = templates.find(t => t.id === currentTemplateId);
+  if (tpl?.isDefault) return showToast('Cannot delete the default template', true);
+  if (!confirm('Delete this template? This cannot be undone.')) return;
+  try {
+    const res = await fetch(`/api/templates?id=${currentTemplateId}`, { method: 'DELETE' });
+    if (res.ok) {
+      showToast('🗑 Template deleted');
+      currentTemplateId = null;
+      document.getElementById('templateName').value = '';
+      document.getElementById('subjectTemplate').value = '';
+      document.getElementById('isDefault').checked = false;
+      editor.innerHTML = '';
+      document.getElementById('deleteBtn').style.display = 'none';
+      await loadTemplates();
+    } else {
+      const err = await res.json();
+      showToast(err.error || 'Failed to delete', true);
+    }
+  } catch { showToast('Network error', true); }
+}
+
+function createNewTemplate() {
+  currentTemplateId = null;
+  document.getElementById('templateName').value = '';
+  document.getElementById('subjectTemplate').value = '';
+  document.getElementById('isDefault').checked = false;
+  editor.innerHTML = '';
+  document.getElementById('deleteBtn').style.display = 'none';
+  renderTemplateList();
+  editor.focus();
+  showToast('Creating new template...');
+}
+
+function previewTemplate() {
+  const subject = document.getElementById('subjectTemplate').value;
+  const html = editor.innerHTML;
+  const win = window.open('', '_blank', 'width=900,height=700');
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Preview</title>
+  <style>
+    body{font-family:Arial,sans-serif;padding:2rem;background:#fefaf0;max-width:800px;margin:0 auto}
+    .ph{background:#1e2f2b;color:#fae669;padding:1rem;border-radius:8px;margin-bottom:1rem}
+    .pc{background:#fff;padding:2rem;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.1)}
+    .vs{background:#f0f2f5;padding:.75rem;margin-top:1rem;border-radius:4px;font-size:.8rem;color:#555}
+    table{width:100%;border-collapse:collapse;margin:10px 0}
+    th,td{border:1.5px solid #b0aaa0;padding:8px 10px;text-align:left}
+    th{background:#1e2f2b;color:#fae669}
+  </style></head><body>
+  <div class="ph"><strong>Subject:</strong> ${escapeHtml(subject)}</div>
+  <div class="pc">${html}</div>
+  <div class="vs"><strong>Sample values:</strong> {{ascName}}→"ABC Service Center" | {{mailDate}}→"15-Apr-2026" | {{deadlineDate}}→"21-Apr-2026" | {{stkQty}}→"150" | {{stnQty}}→"25" | {{totalVal}}→"15,00,000"</div>
+  </body></html>`);
+}
+
+// Init
+loadTemplates();
 </script>
 </body>
 </html>
