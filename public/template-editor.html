@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Email Template Editor | RV Solutions</title>
   <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/quill-table-ui@1.0.6/dist/quill-table-ui.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -130,7 +129,7 @@
       background: #fefcf8;
       border-bottom: 1px solid #e9e6df;
       display: flex;
-      gap: 1rem;
+      gap: 0.75rem;
       flex-wrap: wrap;
       align-items: center;
     }
@@ -146,6 +145,22 @@
     .variable-badge:hover {
       background: #e5b13b;
       color: #1a1e2b;
+    }
+    .table-tool-btn {
+      background: #e5b13b;
+      color: #1a1e2b;
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-family: 'JetBrains Mono', monospace;
+      cursor: pointer;
+      transition: background 0.15s;
+      border: none;
+      font-weight: 600;
+    }
+    .table-tool-btn:hover {
+      background: #0059ff;
+      color: white;
     }
     .editor-form {
       flex: 1;
@@ -185,13 +200,19 @@
       height: 350px;
       margin-bottom: 1rem;
     }
-    .ql-table {
+    /* Make tables look nice in the editor */
+    .ql-editor table {
       width: 100%;
       border-collapse: collapse;
+      margin: 16px 0;
     }
-    .ql-table td, .ql-table th {
-      border: 1px solid #ccc;
+    .ql-editor th, .ql-editor td {
+      border: 1px solid #ddd;
       padding: 8px;
+    }
+    .ql-editor th {
+      background: #1e2f2b;
+      color: #fae669;
     }
     .editor-actions {
       display: flex;
@@ -267,7 +288,7 @@
     
     <div class="editor-area">
       <div class="editor-toolbar">
-        <span style="font-size:0.75rem;font-weight:600;margin-right:0.5rem;">Variables:</span>
+        <span style="font-size:0.75rem;font-weight:600;">Variables:</span>
         <div class="variable-badge" onclick="insertVariable('{{ascName}}')">{{ascName}}</div>
         <div class="variable-badge" onclick="insertVariable('{{mailDate}}')">{{mailDate}}</div>
         <div class="variable-badge" onclick="insertVariable('{{deadlineDate}}')">{{deadlineDate}}</div>
@@ -277,6 +298,9 @@
         <div class="variable-badge" onclick="insertVariable('{{totalVal}}')">{{totalVal}}</div>
         <div class="variable-badge" onclick="insertVariable('{{asm}}')">{{asm}}</div>
         <div class="variable-badge" onclick="insertVariable('{{toEmail}}')">{{toEmail}}</div>
+        <span style="border-left:1px solid #ddd; margin:0 0.25rem;"></span>
+        <button class="table-tool-btn" onclick="insertSimpleTable()">Insert Stock Table</button>
+        <button class="table-tool-btn" onclick="insertProductTable()">Insert Product Table</button>
       </div>
       
       <div class="editor-form">
@@ -311,7 +335,7 @@
       <div class="variables-info">
         <strong>Available variables:</strong> {{ascName}}, {{mailDate}}, {{deadlineDate}}, {{summaryTableHtml}}, {{stkQty}}, {{stnQty}}, {{totalVal}}, {{asm}}, {{toEmail}}
         <br>Use these variables in your template - they will be replaced with actual data when sending emails.
-        <br><strong>To add a table:</strong> Click the "table" button in the toolbar (looks like a grid) or use the "Insert Table" button below.
+        <br><strong>To add a table:</strong> Click the "Insert Stock Table" or "Insert Product Table" buttons above.
       </div>
     </div>
   </div>
@@ -319,22 +343,16 @@
 <div id="globalToast" class="toast-msg"></div>
 
 <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/quill-table-ui@1.0.6/dist/quill-table-ui.js"></script>
 
 <script>
   let quill;
   let currentTemplateId = null;
   let templates = [];
   
-  // Register the table module
-  if (typeof QuillTableUI !== 'undefined') {
-    Quill.register('modules/tableUI', QuillTableUI);
-  }
-  
-  // Initialize Quill editor with table support
+  // Initialize Quill editor
   quill = new Quill('#htmlEditor', {
     theme: 'snow',
-    placeholder: 'Write your email template here... Use the toolbar above to format text, add tables, lists, and more!',
+    placeholder: 'Write your email template here... Use the toolbar above to format text, add lists, and more! Click the table buttons to insert pre-formatted tables.',
     modules: {
       toolbar: [
         ['bold', 'italic', 'underline', 'strike'],
@@ -346,11 +364,8 @@
         [{ 'color': [] }, { 'background': [] }],
         [{ 'align': [] }],
         ['clean'],
-        ['link'],
-        ['table'],
-        [{ 'table': 'cell' }, { 'table': 'row' }, { 'table': 'column' }]
-      ],
-      tableUI: true
+        ['link']
+      ]
     }
   });
   
@@ -360,6 +375,92 @@
     toast.style.background = isErr ? '#c94f31' : '#1e2f2b';
     toast.classList.add('show');
     setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+  
+  // Insert a simple stock summary table
+  function insertSimpleTable() {
+    const tableHtml = `
+      <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-family: Arial, sans-serif;">
+        <thead>
+          <tr style="background: #1e2f2b; color: #fae669;">
+            <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">Description</th>
+            <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">Quantity</th>
+            <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">Value (₹)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="border: 1px solid #ddd; padding: 8px;">Total Stock Quantity</td>
+            <td style="border: 1px solid #ddd; padding: 8px;"><strong>{{stkQty}}</strong></td>
+            <td style="border: 1px solid #ddd; padding: 8px;">-</td>
+          </tr>
+          <tr>
+            <td style="border: 1px solid #ddd; padding: 8px;">STN Quantity</td>
+            <td style="border: 1px solid #ddd; padding: 8px;"><strong>{{stnQty}}</strong></td>
+            <td style="border: 1px solid #ddd; padding: 8px;">-</td>
+          </tr>
+          <tr style="background: #fef5e7;">
+            <td style="border: 1px solid #ddd; padding: 8px;"><strong>Total Value</strong></td>
+            <td style="border: 1px solid #ddd; padding: 8px;">-</td>
+            <td style="border: 1px solid #ddd; padding: 8px;"><strong>₹{{totalVal}}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+    
+    const range = quill.getSelection();
+    if (range) {
+      quill.insertText(range.index, tableHtml);
+    } else {
+      quill.insertText(quill.getLength(), '\n' + tableHtml + '\n');
+    }
+    showToast('Stock table inserted! You can edit the values in the editor.');
+  }
+  
+  // Insert a detailed product table
+  function insertProductTable() {
+    const tableHtml = `
+      <table style="width: 100%; border-collapse: collapse; margin: 16px 0; font-family: Arial, sans-serif;">
+        <thead>
+          <tr style="background: #1e2f2b; color: #fae669;">
+            <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">Product Code</th>
+            <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">Product Description</th>
+            <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">Quantity</th>
+            <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">Unit Price</th>
+            <th style="border: 1px solid #ddd; padding: 10px; text-align: left;">Total Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="border: 1px solid #ddd; padding: 8px;">&nbsp;</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">&nbsp;</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">&nbsp;</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">&nbsp;</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">&nbsp;</td>
+          </tr>
+          <tr>
+            <td style="border: 1px solid #ddd; padding: 8px;">&nbsp;</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">&nbsp;</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">&nbsp;</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">&nbsp;</td>
+            <td style="border: 1px solid #ddd; padding: 8px;">&nbsp;</td>
+          </tr>
+          <tr style="background: #fef5e7;">
+            <td style="border: 1px solid #ddd; padding: 8px;" colspan="3"><strong>TOTAL</strong></td>
+            <td style="border: 1px solid #ddd; padding: 8px;">-</td>
+            <td style="border: 1px solid #ddd; padding: 8px;"><strong>₹{{totalVal}}</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    `;
+    
+    const range = quill.getSelection();
+    if (range) {
+      quill.insertText(range.index, tableHtml);
+    } else {
+      quill.insertText(quill.getLength(), '\n' + tableHtml + '\n');
+    }
+    showToast('Product table inserted! Click on cells to edit the content.');
   }
   
   async function loadTemplates() {
@@ -606,6 +707,10 @@
       </html>
     `);
   }
+  
+  // Make functions globally available
+  window.insertSimpleTable = insertSimpleTable;
+  window.insertProductTable = insertProductTable;
   
   // Load templates on page load
   loadTemplates();
